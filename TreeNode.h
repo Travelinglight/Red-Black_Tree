@@ -31,6 +31,7 @@ Kingston Chan
 #include <fstream>
 #include <string>
 #include <cstdlib>
+#include <windows.h>
 
 class NULLT {};
 
@@ -47,18 +48,20 @@ private:
 	T2 *Rcd;	// record
 	Node *Lft, *Rgt;
 	int height;
+	int color;
 
 public:
 	// constructor and destructor
 	Node();
-	Node(const T1 &id, const T2 * const rcd = NULL);
-	Node(const T1 &id, const T2 &rcd);
+	Node(const T1 &id, const T2 * const rcd = NULL, int clr = 0);
+	Node(const T1 &id, const T2 &rcd, int clr = 0);
 	Node(const Node<T1, T2> &New);
 	~Node();
 
 	// modify the info of private members
 	bool ModifyID(const T1 &tmp);
 	bool ModifyHeight(int h);
+	bool ModifyColor(int clr);
 	bool operator=(const Node<T1, T2> &b);
 	bool operator=(const T1 &id);
 	bool copy(const Node<T1, T2> * const b);
@@ -71,6 +74,7 @@ public:
 	Node<T1, T2> *getLft() const { return Lft; }
 	Node<T1, T2> *getRgt() const { return Rgt; }
 	int getHeight() const { return height; }
+	int getColor() const { return color; }
 	const T1 &getID() const { return ID; }
 	T2 *getRcd() const { return Rcd; }
 	void print() const;
@@ -81,14 +85,15 @@ public:
 // DESCRIPTION: Constructor of Node class.
 //   ARGUMENTS: none
 // USES GLOBAL: none
-// MODIFIES GL: height, Rcd, Lft, Rgt
+// MODIFIES GL: height, Rcd, Lft, Rgt, color
 //     RETURNS: none
 //      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-05
-//							KC 2015-02-05
+// AUTHOR/DATE: KC 2015-02-20
+//							KC 2015-02-20
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 Node<T1, T2>::Node() {
+	color = 0;
 	height = 0;
 	Rcd = new T2;
 	Lft = Rgt = NULL;
@@ -99,21 +104,23 @@ Node<T1, T2>::Node() {
 // DESCRIPTION: Constructor of Node class.
 //   ARGUMENTS: const T1 &id - the ID of the node
 //				const T2 * const rcd - the initial record with default value NULL
+//				int clr = 0 - the color of the node
 // USES GLOBAL: none
-// MODIFIES GL: ID, Rcd, height, Lft, Rgt
+// MODIFIES GL: ID, Rcd, height, Lft, Rgt, color
 //     RETURNS: none
 //      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-09
-//							KC 2015-02-09
+// AUTHOR/DATE: KC 2015-02-20
+//							KC 2015-02-20
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
-Node<T1, T2>::Node(const T1 &id, const T2 * const rcd) {
+Node<T1, T2>::Node(const T1 &id, const T2 * const rcd, int clr) {
 	ID = id;
 	Rcd = new T2;
 	if (rcd != NULL)
 		*Rcd = *rcd;
 	Lft = Rgt = NULL;	// no sons at first
 	height = 0;
+	color = clr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -121,20 +128,22 @@ Node<T1, T2>::Node(const T1 &id, const T2 * const rcd) {
 // DESCRIPTION: Constructor of Node class.
 //   ARGUMENTS: const T1 &id - the ID of the node
 //				const T2 &rcd - the initial record
+//				int clr = 0 - the color of the node
 // USES GLOBAL: none
-// MODIFIES GL: ID, Rcd, height, Lft, Rgt
+// MODIFIES GL: ID, Rcd, height, Lft, Rgt, color
 //     RETURNS: none
 //      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-09
-//							KC 2015-02-09
+// AUTHOR/DATE: KC 2015-02-20
+//							KC 2015-02-20
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
-Node<T1, T2>::Node(const T1 &id, const T2 &rcd) {
+Node<T1, T2>::Node(const T1 &id, const T2 &rcd, int clr) {
 	ID = id;
 	Rcd = new T2;
 	*Rcd = rcd;
 	Lft = Rgt = NULL;	// no sons at first
 	height = 0;
+	color = clr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -209,6 +218,23 @@ bool Node<T1, T2>::ModifyHeight(int h) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//        NAME: ModifyColor
+// DESCRIPTION: To modify the color of a Node.
+//   ARGUMENTS: int clr - the new color value
+// USES GLOBAL: none
+// MODIFIES GL: color
+//     RETURNS: bool
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-20
+//							KC 2015-02-20
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+bool Node<T1, T2>::ModifyColor(int clr) {
+	color = clr;
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 //        NAME: copy
 // DESCRIPTION: To copy the node and their sons.
 //   ARGUMENTS: const Node<T1, T2> * const b - the new node that is to be copied
@@ -216,8 +242,8 @@ bool Node<T1, T2>::ModifyHeight(int h) {
 // MODIFIES GL: ID, Rcd, Lft, Rgt, height
 //     RETURNS: bool
 //      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-08
-//							KC 2015-02-08
+// AUTHOR/DATE: KC 2015-02-20
+//							KC 2015-02-20
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 bool Node<T1, T2>::copy(const Node<T1, T2> * const b) {
@@ -226,7 +252,7 @@ bool Node<T1, T2>::copy(const Node<T1, T2> * const b) {
 	if (b == this)
 		return true;
 
-	// copy ID, record and height
+	// copy ID, record, color and height
 	ID = b->ID;
 	if (b->Rcd != NULL) {
 		if (Rcd == NULL)
@@ -240,6 +266,7 @@ bool Node<T1, T2>::copy(const Node<T1, T2> * const b) {
 		}
 	}
 	height = b->height;
+	color = b->color;
 
 	// copy the left son
 	if (b->Lft != NULL) {
@@ -288,6 +315,7 @@ bool Node<T1, T2>::operator=(const Node<T1, T2> &b) {
 	ID = b.getID();
 	*Rcd = *(b.getRcd());
 	height = b.getHeight();
+	color = b.getColor();
 	return true;
 }
 
@@ -424,11 +452,27 @@ bool Node<T1, T2>::AddRgt(const T1 &rgtID, const T2 * const RgtRcd = NULL) {
 // MODIFIES GL: none
 //     RETURNS: void
 //      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-11
-//							KC 2015-02-11
+// AUTHOR/DATE: KC 2015-02-20
+//							KC 2015-02-20
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 void Node<T1, T2>::print() const{
+	HANDLE hstdin = GetStdHandle( STD_INPUT_HANDLE );
+	HANDLE hstdout = GetStdHandle( STD_OUTPUT_HANDLE );
+	
+	// remember how things were when started
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	GetConsoleScreenBufferInfo( hstdout, &csbi );
+	
+	// set colors
+	if (color == 0)
+		SetConsoleTextAttribute( hstdout, 0xF0 );
+	else if (color == 1)
+		SetConsoleTextAttribute( hstdout, 0xFC );
+	else
+		return;
+
+	// print the infomation in the right color
 	cout << ID << ": h-" << height << "  l-";
 	if (Lft != NULL)
 		cout << '(' << Lft->getID() << ')';
@@ -436,6 +480,10 @@ void Node<T1, T2>::print() const{
 	if (Rgt != NULL)
 		cout << '(' << Rgt->getID() << ')';
 	cout << endl;
+
+	// return to the original settings
+	SetConsoleTextAttribute( hstdout, csbi.wAttributes );
+
 	if (Lft != NULL)
 		Lft->print();
 	if (Rgt != NULL)
