@@ -59,9 +59,9 @@ public:
 	~Node();
 
 	// modify the info of private members
-	bool ModifyID(const T1 &tmp);
-	bool ModifyHeight(int h);
-	bool ModifyColor(int clr);
+	bool setID(const T1 &tmp);
+	bool setHeight(int h);
+	bool setColor(int clr);
 	bool operator=(const Node<T1, T2> &b);
 	bool operator=(const T1 &id);
 	bool copy(const Node<T1, T2> * const b);
@@ -184,7 +184,7 @@ Node<T1, T2>::~Node() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//        NAME: ModifyID
+//        NAME: setID
 // DESCRIPTION: To modify the ID of a Node.
 //   ARGUMENTS: const T1 &tmp - the new ID value
 // USES GLOBAL: none
@@ -195,13 +195,13 @@ Node<T1, T2>::~Node() {
 //							KC 2015-02-05
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
-bool Node<T1, T2>::ModifyID(const T1 &tmp) {
+bool Node<T1, T2>::setID(const T1 &tmp) {
 	ID = tmp;
 	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//        NAME: ModifyHeight
+//        NAME: setHeight
 // DESCRIPTION: To modify the height of a Node.
 //   ARGUMENTS: int h - the new height value
 // USES GLOBAL: none
@@ -212,13 +212,13 @@ bool Node<T1, T2>::ModifyID(const T1 &tmp) {
 //							KC 2015-02-09
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
-bool Node<T1, T2>::ModifyHeight(int h) {
+bool Node<T1, T2>::setHeight(int h) {
 	height = h;
 	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//        NAME: ModifyColor
+//        NAME: setColor
 // DESCRIPTION: To modify the color of a Node.
 //   ARGUMENTS: int clr - the new color value
 // USES GLOBAL: none
@@ -229,7 +229,7 @@ bool Node<T1, T2>::ModifyHeight(int h) {
 //							KC 2015-02-20
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
-bool Node<T1, T2>::ModifyColor(int clr) {
+bool Node<T1, T2>::setColor(int clr) {
 	color = clr;
 	return true;
 }

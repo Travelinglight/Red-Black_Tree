@@ -35,6 +35,15 @@ Kingston Chan
 
 using namespace std;
 
+template<typename T1>
+int dCmp(const T1 &a, const T1 &b) {
+	if (a > b)
+		return 1;
+	if (a < b)
+		return -1;
+	return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////RB tree//////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,9 +67,9 @@ public :
 	// constructors and destructor
 	RBTree();
 	RBTree(int(*compare)(const T1 &a, const T1 &b));
-	RBTree(const Node<T1, T2> &head, int(*compare)(const T1 &a, const T1 &b) = NULL);
-	RBTree(const T1 &rootID, const T2 * const rootRcd = NULL, int(*compare)(const T1 &a, const T1 &b) = NULL);
-	RBTree(const T1 &rootID, const T2 &rootRcd, int(*compare)(const T1 &a, const T1 &b) = NULL);
+	RBTree(const Node<T1, T2> &head, int(*compare)(const T1 &a, const T1 &b) = dCmp);
+	RBTree(const T1 &rootID, const T2 * const rootRcd = NULL, int(*compare)(const T1 &a, const T1 &b) = dCmp);
+	RBTree(const T1 &rootID, const T2 &rootRcd, int(*compare)(const T1 &a, const T1 &b) = dCmp);
 	RBTree(const RBTree<T1, T2> &New);
 	~RBTree();
 
@@ -95,13 +104,13 @@ template<class T1, class T2>
 RBTree<T1, T2>::RBTree() {
 	root = NULL;
 	size = 0;
-	cmp = NULL;
+	cmp = dCmp;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: RBTree
 // DESCRIPTION: Constructor of RBTree class.
-//   ARGUMENTS: int(*compare)(const T1 &a, const T1 &b) = NULL - the compare function
+//   ARGUMENTS: int(*compare)(const T1 &a, const T1 &b) = dCmp - the compare function
 // USES GLOBAL: none
 // MODIFIES GL: root, size, cmp;
 //     RETURNS: none
@@ -119,7 +128,7 @@ RBTree<T1, T2>::RBTree(int(*compare)(const T1 &a, const T1 &b)) {
 //        NAME: RBTree
 // DESCRIPTION: Constructor of RBTree class.
 //   ARGUMENTS: const Node<T1, T2> &head - the root node of the RB tree
-//				int(*compare)(const T1 &a, const T1 &b) = NULL - the compare function
+//				int(*compare)(const T1 &a, const T1 &b) = dCmp - the compare function
 // USES GLOBAL: none
 // MODIFIES GL: root, size, cmp;
 //     RETURNS: none
@@ -139,7 +148,7 @@ RBTree<T1, T2>::RBTree(const Node<T1, T2> &head, int(*compare)(const T1 &a, cons
 // DESCRIPTION: Constructor of RBTree class.
 //   ARGUMENTS: const T1 &rootID - the ID of the root node
 //				const T2 * const rootRcd = NULL - the initial root record
-//				int(*compare)(const T1 &a, const T1 &b) = NULL - the compare function
+//				int(*compare)(const T1 &a, const T1 &b) = dCmp - the compare function
 // USES GLOBAL: none
 // MODIFIES GL: root, size, cmp;
 //     RETURNS: none
@@ -159,7 +168,7 @@ RBTree<T1, T2>::RBTree(const T1 &rootID, const T2 * const rootRcd, int(*compare)
 // DESCRIPTION: Constructor of RBTree class.
 //   ARGUMENTS: const T1 &rootID - the ID of the root node
 //				const T2 &rootRcd - the initial root record
-//				int(*compare)(const T1 &a, const T1 &b) = NULL - the compare function
+//				int(*compare)(const T1 &a, const T1 &b) = dCmp - the compare function
 // USES GLOBAL: none
 // MODIFIES GL: root, size, cmp;
 //     RETURNS: none
@@ -313,7 +322,7 @@ bool RBTree<T1, T2>::addRoot(const T1 &id, const T2 &rcd) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: addRoot
-// DESCRIPTION: To add a root for the RB tree.
+// DESCRIPTION: To add a root for the Red-Black tree.
 //   ARGUMENTS: const Node<T1, T2> &New - the copy of the root node
 // USES GLOBAL: none
 // MODIFIES GL: root, size
@@ -334,7 +343,7 @@ bool RBTree<T1, T2>::addRoot(const Node<T1, T2> &New) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: empty
-// DESCRIPTION: To delete all the nodes in the RB tree.
+// DESCRIPTION: To delete all the nodes in the Red-Black tree.
 //   ARGUMENTS: none
 // USES GLOBAL: none
 // MODIFIES GL: root, size
@@ -355,7 +364,7 @@ bool RBTree<T1, T2>::empty() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: find
-// DESCRIPTION: To find a node of a certain ID in RB tree.
+// DESCRIPTION: To find a node of a certain ID in Red-Black tree.
 //   ARGUMENTS: const T1 &id - the ID of the node that we want to find
 // USES GLOBAL: none
 // MODIFIES GL: none
@@ -379,35 +388,93 @@ T2 *RBTree<T1, T2>::find(const T1 &id) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//        NAME: sRotateL
-// DESCRIPTION: To find a node of a certain ID in RB tree.
-//   ARGUMENTS: const T1 &id - the ID of the node that we want to find
+//        NAME: rotateLL
+// DESCRIPTION: The single rotation LL of Red-Black tree.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
 // USES GLOBAL: none
-// MODIFIES GL: none
-//     RETURNS: T2*
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
 //      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-10
-//							KC 2015-02-10
+// AUTHOR/DATE: KC 2015-02-21
+//							KC 2015-02-21
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
-Node<T1, T2>* RBTree<T1, T2>::sRotateL(Node<T1, T2> *N1) {
-	
+Node<T1, T2>* RBTree<T1, T2>::rotateLL(Node<T1, T2> *N1) {
+	Node<T1, T2> *N2 = N1->getLft();
+	N1->AddLft(N2->getRgt());
+	N2->AddRgt(N1);
+	N1->setColor(1 - N1->getColor());
+	N2->setColor(2 - N2->getColor());
+	return N2;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//        NAME: sRotateR
-// DESCRIPTION: To find a node of a certain ID in RB tree.
-//   ARGUMENTS: const T1 &id - the ID of the node that we want to find
+//        NAME: rotateRR
+// DESCRIPTION: The single rotation RR of Red-Black tree.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
 // USES GLOBAL: none
-// MODIFIES GL: none
-//     RETURNS: T2*
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
 //      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-10
-//							KC 2015-02-10
+// AUTHOR/DATE: KC 2015-02-21
+//							KC 2015-02-21
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
-Node<T1, T2>* RBTree<T1, T2>::sRotateR(Node<T1, T2> *N1) {
+Node<T1, T2>* RBTree<T1, T2>::rotateRR(Node<T1, T2> *N1) {
+	Node<T1, T2> *N2 = N1->getRgt();
+	N1->AddRgt(N2->getLft());
+	N2->AddLft(N1);
+	N1->setColor(1 - N1->getColor());
+	N2->setColor(2 - N2->getColor());
+	return N2;
+}
 
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: rotateLR
+// DESCRIPTION: The single rotation LR of Red-Black tree.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
+// USES GLOBAL: none
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-21
+//							KC 2015-02-21
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::rotateLR(Node<T1, T2> *N1) {
+	Node<T1, T2> *N2 = N1->getLft();
+	Node<T1, T2> *N3 = N2->getRgt();
+	N1->setColor(1 - N1->getColor());
+	N3->setColor(1 - N3->getColor());
+	N2->AddRgt(N3->getLft());
+	N1->AddLft(N3->getRgt());
+	N3->AddLft(N2);
+	N3->AddRgt(N1);
+	return N3;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: rotateRL
+// DESCRIPTION: The single rotation RL of RB tree.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
+// USES GLOBAL: none
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-21
+//							KC 2015-02-21
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::rotateRL(Node<T1, T2> *N1) {
+	Node<T1, T2> *N2 = N1->getRgt();
+	Node<T1, T2> *N3 = N2->getLft();
+	N1->setColor(1 - N1->getColor());
+	N3->setColor(1 - N3->getColor());
+	N2->AddLft(N3->getRgt());
+	N1->AddRgt(N3->getLft());
+	N3->AddLft(N1);
+	N3->AddRgt(N2);
+	return N3;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -419,8 +486,8 @@ Node<T1, T2>* RBTree<T1, T2>::sRotateR(Node<T1, T2> *N1) {
 // MODIFIES GL: root (possible)
 //     RETURNS: Node<T1, T2>*
 //      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-10
-//							KC 2015-02-10
+// AUTHOR/DATE: KC 2015-02-21
+//							KC 2015-02-21
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::rotate(Node<T1, T2> *N1, const T1 &id) {
