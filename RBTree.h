@@ -44,6 +44,15 @@ int dCmp(const T1 &a, const T1 &b) {
 	return 0;
 }
 
+class RBERR {
+public :
+	std::string error;
+	RBERR();
+	RBERR(std::string info) {
+		error = info;
+	}
+};
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////RB tree//////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,13 +64,15 @@ private :
 	int size;
 	int(*cmp)(const T1 &a, const T1 &b);
 
+	static Node<T1, T2> *X, *P, *GP, *GGP;
+
 	int calcHeight(const Node<T1, T2> * const node) const;
 	int calcSize(const Node<T1, T2> * const node) const;
-	Node<T1, T2>* sRotateL(Node<T1, T2> *N1);
-	Node<T1, T2>* sRotateR(Node<T1, T2> *N1);
-	Node<T1, T2>* rotate(Node<T1, T2> *N1, const T1 &id);
-	Node<T1, T2>* plug(Node<T1, T2> *node, const T1 &id);
-	Node<T1, T2>* cut(Node<T1, T2> *node, const T1 &id);
+	Node<T1, T2>* rotateLL(Node<T1, T2> *N1);
+	Node<T1, T2>* rotateRR(Node<T1, T2> *N1);
+	Node<T1, T2>* rotateLR(Node<T1, T2> *N1);
+	Node<T1, T2>* rotateRL(Node<T1, T2> *N1);
+	bool handleReorient();
 	Node<T1, T2>* findRML(const Node<T1, T2>* const node) const;
 public :
 	// constructors and destructor
@@ -478,20 +489,66 @@ Node<T1, T2>* RBTree<T1, T2>::rotateRL(Node<T1, T2> *N1) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//        NAME: rotate
-// DESCRIPTION: The single rotation of Red-Black tree.
-//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
-//				const T1 &id - the id of the target node
+//        NAME: handleReorient
+// DESCRIPTION: handle the reorientation including recoloring and rotation.
+//   ARGUMENTS: none 
 // USES GLOBAL: none
 // MODIFIES GL: root (possible)
 //     RETURNS: Node<T1, T2>*
 //      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-21
-//							KC 2015-02-21
+// AUTHOR/DATE: KC 2015-02-23
+//							KC 2015-02-23
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
-Node<T1, T2>* RBTree<T1, T2>::rotate(Node<T1, T2> *N1, const T1 &id) {
+bool RBTree<T1, T2>::handleReorient() {
 
+	// recoloring
+	X->setColor(1);
+	if (X->getLft() != NULL)
+		X->getLft()->setColor(0);
+	if (X->getRgt() != NULL)
+		X->getRgt()->setColor(0);
+
+	if (P->getColor == 1) {	// rotation
+		int Case = (cmp(X->getID(), P->getID()) < 0) + ((cmp(P->getID(), GP->getID()) < 0) << 1);
+		switch(Case) {
+		case 0:	// single rotate with right
+			if (GP == GGP)
+				GGP = rotateRR(GP);
+			else if (cmp(GP->getID(), GGP->getID()) < 0)
+				GGP->AddLft(rotateRR(GP);
+			else
+				GGP->AddRgt(rotateRR(GP);
+			break;
+		case 1:	// double rotate right-left
+			if (GP == GGP)
+				GGP = rotateRL(GP);
+			if (cmp(GP->getID(), GGP->getID()) < 0)
+				GGP->AddLft(rotateRL(GP);
+			else
+				GGP->AddRgt(rotateRL(GP);
+			break;
+		case 2: // double rotate left-right
+			if (GP == GGP)
+				GGP = rotateLR(GP);
+			if (cmp(GP->getID(), GGP->getID()) < 0)
+				GGP->AddLft(rotateLR(GP);
+			else
+				GGP->AddRgt(rotateLR(GP);
+			break;
+		case 3: // single rotate with right
+			if (GP == GGP)
+				GGP = rotateRR(GP);
+			if (cmp(GP->getID(), GGP->getID()) < 0)
+				GGP->AddLft(rotateLL(GP);
+			else
+				GGP->AddRgt(rotateLL(GP);
+			break;
+		default:
+			throw RBERR("Case out of range");
+			return false;
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -525,18 +582,19 @@ Node<T1, T2>* RBTree<T1, T2>::plug(Node<T1, T2> *node, const T1 &id) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: Insert
-// DESCRIPTION: The user interface of inserting a node into the RB tree.
+// DESCRIPTION: Inserting a node into the RB tree.
 //   ARGUMENTS: const T1 &id - the id of the new node that is to be inserted
 // USES GLOBAL: none
 // MODIFIES GL: root (possible)
 //     RETURNS: bool
 //      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-10
-//							KC 2015-02-10
+// AUTHOR/DATE: KC 2015-02-23
+//							KC 2015-02-23
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 bool RBTree<T1, T2>::Insert(const T1 &id) {
-	root = plug(root, id);
+	if (root == NULL)
+		root = new Node<T1, T2>(id);
 	return true;
 }
 
