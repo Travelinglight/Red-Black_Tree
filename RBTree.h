@@ -28,6 +28,7 @@ Kingston Chan
 #ifndef RBTREE_H
 #define RBTREE_H
 
+#include "TreeNode.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -66,14 +67,13 @@ private :
 
 	static Node<T1, T2> *X, *P, *GP, *GGP;
 
-	int calcHeight(const Node<T1, T2> * const node) const;
 	int calcSize(const Node<T1, T2> * const node) const;
 	Node<T1, T2>* rotateLL(Node<T1, T2> *N1);
 	Node<T1, T2>* rotateRR(Node<T1, T2> *N1);
 	Node<T1, T2>* rotateLR(Node<T1, T2> *N1);
 	Node<T1, T2>* rotateRL(Node<T1, T2> *N1);
 	bool handleReorient();
-	Node<T1, T2>* findRML(const Node<T1, T2>* const node) const;
+	//Node<T1, T2>* findRML(const Node<T1, T2>* const node) const;
 public :
 	// constructors and destructor
 	RBTree();
@@ -90,7 +90,7 @@ public :
 	bool addRoot(const Node<T1, T2> &New);
 
 	bool Insert(const T1 &id);
-	bool Delete(const T1 &id);
+	//bool Delete(const T1 &id);
 	bool empty();
 
 	int getSize() const { return size; }
@@ -99,6 +99,18 @@ public :
 	T1 rootID() const { return root->getID(); }
 	bool print() const;
 };
+
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::X = NULL;
+
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::P = NULL;
+
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::GP = NULL;
+
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::GGP = NULL;
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: RBTree
@@ -226,29 +238,11 @@ RBTree<T1, T2>::RBTree(const RBTree<T1, T2> &Old) {
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 RBTree<T1, T2>::~RBTree() {
-	//cout << "Destructor: ";
-	//if (root != NULL)
-	//	cout << root->getID();
-	//cout << endl;
+	cout << "Destructor: ";
+	if (root != NULL)
+		cout << root->getID();
+	cout << endl;
 	delete root;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//        NAME: calcHeight
-// DESCRIPTION: To get the height of a node in RB tree.
-//   ARGUMENTS: const Node<T1, T2> * const node - the node of which the height we want
-// USES GLOBAL: none
-// MODIFIES GL: none
-//     RETURNS: int
-//      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-10
-//							KC 2015-02-10
-////////////////////////////////////////////////////////////////////////////////
-template<class T1, class T2>
-int RBTree<T1, T2>::calcHeight(const Node<T1, T2> * const node) const {
-	if (node == NULL)
-		return -1;
-	return node->getHeight();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -381,21 +375,27 @@ bool RBTree<T1, T2>::empty() {
 // MODIFIES GL: none
 //     RETURNS: T2*
 //      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-10
-//							KC 2015-02-10
+// AUTHOR/DATE: KC 2015-02-24
+//							KC 2015-02-24
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 T2 *RBTree<T1, T2>::find(const T1 &id) const {
-	Node<T1, T2> *p = root;
-	while ((p != NULL) && (cmp(p->getID(), id) != 0)) {
-		if (cmp(id, p->getID()) > 0)
-			p = p->getRgt();
+	X = P = GP = GGP = root;
+	while ((X != NULL) && (cmp(X->getID(), id) != 0)) {
+		GGP = GP;
+		GP = P;
+		P = X;
+		if (cmp(id, X->getID()) > 0)
+			X = X->getRgt();
 		else
-			p = p->getLft();
+			X = X->getLft();
+		flag = false;
+		if (((X->getLft() != NULL) && (X->getLft()->getColor() == 1)) && ((X->getRgt() != NULL) && (X->getRgt()->getColor() == 1)))
+			handleReorient();
 	}
-	if (p == NULL)
+	if (X == NULL)
 		return NULL;
-	return p->getRcd();
+	return X->getRcd();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -436,7 +436,7 @@ Node<T1, T2>* RBTree<T1, T2>::rotateRR(Node<T1, T2> *N1) {
 	N1->AddRgt(N2->getLft());
 	N2->AddLft(N1);
 	N1->setColor(1 - N1->getColor());
-	N2->setColor(2 - N2->getColor());
+	N2->setColor(1 - N2->getColor());
 	return N2;
 }
 
@@ -509,75 +509,49 @@ bool RBTree<T1, T2>::handleReorient() {
 	if (X->getRgt() != NULL)
 		X->getRgt()->setColor(0);
 
-	if (P->getColor == 1) {	// rotation
+	if (P->getColor() == 1) {	// rotation
 		int Case = (cmp(X->getID(), P->getID()) < 0) + ((cmp(P->getID(), GP->getID()) < 0) << 1);
 		switch(Case) {
 		case 0:	// single rotate with right
 			if (GP == GGP)
-				GGP = rotateRR(GP);
+				GGP = GP = rotateRR(GP);
 			else if (cmp(GP->getID(), GGP->getID()) < 0)
-				GGP->AddLft(rotateRR(GP);
+				GGP->AddLft(rotateRR(GP));
 			else
-				GGP->AddRgt(rotateRR(GP);
+				GGP->AddRgt(rotateRR(GP));
 			break;
 		case 1:	// double rotate right-left
 			if (GP == GGP)
-				GGP = rotateRL(GP);
+				GGP = GP = rotateRL(GP);
 			if (cmp(GP->getID(), GGP->getID()) < 0)
-				GGP->AddLft(rotateRL(GP);
+				GGP->AddLft(rotateRL(GP));
 			else
-				GGP->AddRgt(rotateRL(GP);
+				GGP->AddRgt(rotateRL(GP));
 			break;
 		case 2: // double rotate left-right
 			if (GP == GGP)
-				GGP = rotateLR(GP);
+				GGP = GP = rotateLR(GP);
 			if (cmp(GP->getID(), GGP->getID()) < 0)
-				GGP->AddLft(rotateLR(GP);
+				GGP->AddLft(rotateLR(GP));
 			else
-				GGP->AddRgt(rotateLR(GP);
+				GGP->AddRgt(rotateLR(GP));
 			break;
 		case 3: // single rotate with right
 			if (GP == GGP)
-				GGP = rotateRR(GP);
+				GGP = GP = rotateRR(GP);
 			if (cmp(GP->getID(), GGP->getID()) < 0)
-				GGP->AddLft(rotateLL(GP);
+				GGP->AddLft(rotateLL(GP));
 			else
-				GGP->AddRgt(rotateLL(GP);
+				GGP->AddRgt(rotateLL(GP));
 			break;
 		default:
 			throw RBERR("Case out of range");
 			return false;
 		}
 	}
-}
 
-////////////////////////////////////////////////////////////////////////////////
-//        NAME: plug
-// DESCRIPTION: plug a node into the RB tree.
-//   ARGUMENTS: Node<T1, T2> *N1 - the root of the subtree that contains the new node
-//				const T1 &id - the id of the new node that is to be plugged in
-// USES GLOBAL: none
-// MODIFIES GL: root (possible)
-//     RETURNS: Node<T1, T2>*
-//      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-10
-//							KC 2015-02-10
-////////////////////////////////////////////////////////////////////////////////
-template<class T1, class T2>
-Node<T1, T2>* RBTree<T1, T2>::plug(Node<T1, T2> *node, const T1 &id) {
-	if (node == NULL) {
-		node = new Node<T1, T2>(id);
-		++size;
-	}
-	else if (cmp(id, node->getID()) > 0) {
-		node->AddRgt(this->plug(node->getRgt(), id));
-		node = balance(node);
-	}
-	else if (cmp(id, node->getID()) < 0) {
-		node->AddLft(this->plug(node->getLft(), id));
-		node = balance(node);
-	}
-	return node;
+	root->setColor(0);
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -593,8 +567,50 @@ Node<T1, T2>* RBTree<T1, T2>::plug(Node<T1, T2> *node, const T1 &id) {
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 bool RBTree<T1, T2>::Insert(const T1 &id) {
-	if (root == NULL)
+	// special case (NULL tree) handling
+	if (root == NULL) {
 		root = new Node<T1, T2>(id);
+		if (root == NULL) {
+			throw RBERR("Out of space");
+			return false;
+		}
+		++size;
+		return true;
+	}
+
+	// find the right place to insert
+	X = P = GP = GGP = root;
+	while ((X != NULL) && (cmp(X->getID(), id) != 0)) {
+		if (((X->getLft() != NULL) && (X->getLft()->getColor() == 1)) && ((X->getRgt() != NULL) && (X->getRgt()->getColor() == 1)))
+			handleReorient();
+		GGP = GP;
+		GP = P;
+		P = X;
+		if (cmp(X->getID(), id) > 0)
+			X = X->getLft();
+		else
+			X = X->getRgt();
+	}
+
+	// if the Node already exists
+	if (X != NULL)
+		return true;
+
+	// create a new Node and concatenate it on the tree
+	X = new Node<T1, T2>(id);
+	if (X == NULL) {
+		throw RBERR("Out of space");
+		return false;
+	}
+	X->setColor(1);
+	++size;
+	if (cmp(id, P->getID()) < 0)
+		P->AddLft(X);
+	else
+		P->AddRgt(X);
+	if (P->getColor() == 1)
+		handleReorient();
+
 	return true;
 }
 
@@ -609,7 +625,7 @@ bool RBTree<T1, T2>::Insert(const T1 &id) {
 // AUTHOR/DATE: KC 2015-02-11
 //							KC 2015-02-11
 ////////////////////////////////////////////////////////////////////////////////
-template<class T1, class T2>
+/*template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::findRML(const Node<T1, T2>* const node) const{
 	Node<T1, T2>* RML = node->getLft();
 	if (RML == NULL)
@@ -617,65 +633,7 @@ Node<T1, T2>* RBTree<T1, T2>::findRML(const Node<T1, T2>* const node) const{
 	while (RML->getRgt() != NULL)
 		RML = RML->getRgt();
 	return RML;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//        NAME: cut
-// DESCRIPTION: To cut a Node from the RB tree.
-//   ARGUMENTS: Node<T1, T2> *N1 - the root of the subtree that node is deleted from
-//				const T1 &id - the id of the new node that is to be deleted
-// USES GLOBAL: none
-// MODIFIES GL: root (possible)
-//     RETURNS: Node<T1, T2>*
-//      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-12
-//							KC 2015-02-12
-////////////////////////////////////////////////////////////////////////////////
-template<class T1, class T2>
-Node<T1, T2>* RBTree<T1, T2>::cut(Node<T1, T2> *node, const T1 &id) {
-	Node<T1, T2> *tmp;
-	if (node == NULL)
-		return node;
-	if (cmp(id, node->getID()) > 0) {
-		tmp = cut(node->getRgt(), id);
-		if (tmp == NULL)
-			delete node->getRgt();
-		node->AddRgt(tmp);
-		node = balance(node);
-	}
-	else if (cmp(id, node->getID()) < 0) {
-		tmp = cut(node->getLft(), id);
-		if (tmp == NULL)
-			delete node->getLft();
-		node->AddLft(tmp);
-		node = balance(node);
-	}
-	else {
-		int Case;
-		Case = 2 * (node->getLft() != NULL) + (node->getRgt() != NULL);
-
-		switch (Case) {
-		case 0 :	// node is a leaf
-			return NULL;
-		case 1 :	// node has no left son
-			*node = *(node->getRgt());
-			delete node->getRgt();
-			node->AddRgt(NULL);
-			node = balance(node);
-			break;
-		default :	// node has a left son, or has both left and right subtree
-			Node<T1, T2> *RML = findRML(node);
-			*node = *RML;
-			tmp = cut(node->getLft(), RML->getID());
-			if (tmp == NULL)
-				delete node->getLft();
-			node->AddLft(tmp);
-			node = balance(node);
-			break;
-		}
-	}
-	return node;
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: Delete
@@ -688,11 +646,11 @@ Node<T1, T2>* RBTree<T1, T2>::cut(Node<T1, T2> *node, const T1 &id) {
 // AUTHOR/DATE: KC 2015-02-10
 //							KC 2015-02-10
 ////////////////////////////////////////////////////////////////////////////////
-template<class T1, class T2>
+/*template<class T1, class T2>
 bool RBTree<T1, T2>::Delete(const T1 &id) {
 	root = cut(root, id);
 	return true;
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: print
