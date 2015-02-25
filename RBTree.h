@@ -509,37 +509,41 @@ bool RBTree<T1, T2>::handleReorient() {
 	if (X->getRgt() != NULL)
 		X->getRgt()->setColor(0);
 
-	if (P->getColor() == 1) {	// rotation
+	if ((P != X) && (P->getColor() == 1)) {	// rotation
 		int Case = (cmp(X->getID(), P->getID()) < 0) + ((cmp(P->getID(), GP->getID()) < 0) << 1);
 		switch(Case) {
 		case 0:	// single rotate with right
+			cout << "rotateRR" << endl;
 			if (GP == GGP)
-				GGP = GP = rotateRR(GP);
+				root = rotateRR(GP);
 			else if (cmp(GP->getID(), GGP->getID()) < 0)
 				GGP->AddLft(rotateRR(GP));
 			else
 				GGP->AddRgt(rotateRR(GP));
 			break;
 		case 1:	// double rotate right-left
+			cout << "rotateRL" << endl;
 			if (GP == GGP)
-				GGP = GP = rotateRL(GP);
-			if (cmp(GP->getID(), GGP->getID()) < 0)
+				root = rotateRL(GP);
+			else if (cmp(GP->getID(), GGP->getID()) < 0)
 				GGP->AddLft(rotateRL(GP));
 			else
 				GGP->AddRgt(rotateRL(GP));
 			break;
 		case 2: // double rotate left-right
+			cout << "rotateLR" << endl;
 			if (GP == GGP)
-				GGP = GP = rotateLR(GP);
-			if (cmp(GP->getID(), GGP->getID()) < 0)
+				root = rotateLR(GP);
+			else if (cmp(GP->getID(), GGP->getID()) < 0)
 				GGP->AddLft(rotateLR(GP));
 			else
 				GGP->AddRgt(rotateLR(GP));
 			break;
 		case 3: // single rotate with right
+			cout << "rotateLL" << endl;
 			if (GP == GGP)
-				GGP = GP = rotateRR(GP);
-			if (cmp(GP->getID(), GGP->getID()) < 0)
+				root = rotateRR(GP);
+			else if (cmp(GP->getID(), GGP->getID()) < 0)
 				GGP->AddLft(rotateLL(GP));
 			else
 				GGP->AddRgt(rotateLL(GP));

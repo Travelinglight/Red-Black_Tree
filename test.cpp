@@ -53,6 +53,26 @@ int main() {
 		for (int i = 1; i < 7; i++)
 			RBT1.Insert(i);
 		RBT1.print();
+		cout << "----------------------------------------" << endl;
+		RBT1.empty();
+		RBT1.Insert(10);
+		RBT1.Insert(85);
+		RBT1.Insert(15);
+		RBT1.Insert(70);
+		RBT1.Insert(20);
+		RBT1.Insert(60);
+		RBT1.Insert(30);
+		RBT1.Insert(50);
+		RBT1.Insert(65);
+		RBT1.Insert(80);
+		RBT1.Insert(90);
+		RBT1.Insert(40);
+		RBT1.Insert(5);
+		RBT1.Insert(55);
+		RBT1.Insert(64);
+		RBT1.Insert(66);
+		RBT1.Insert(67);
+		RBT1.print();
 	}
 	{ // RBTree(const Node<T1, T2> &head, int(*compare)(const T1 &a, const T1 &b) = dCmp);
 	  	cout << "========================================" << endl;
