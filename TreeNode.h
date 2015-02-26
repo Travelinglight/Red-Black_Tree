@@ -315,7 +315,6 @@ bool Node<T1, T2>::operator=(const Node<T1, T2> &b) {
 	ID = b.getID();
 	*Rcd = *(b.getRcd());
 	height = b.getHeight();
-	color = b.getColor();
 	return true;
 }
 

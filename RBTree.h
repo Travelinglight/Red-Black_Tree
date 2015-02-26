@@ -65,14 +65,15 @@ private :
 	int size;
 	int(*cmp)(const T1 &a, const T1 &b);
 
-	static Node<T1, T2> *X, *P, *GP, *GGP;
+	static Node<T1, T2> *X, *T, *P, *GP, *GGP;
 
 	int calcSize(const Node<T1, T2> * const node) const;
 	Node<T1, T2>* rotateLL(Node<T1, T2> *N1);
 	Node<T1, T2>* rotateRR(Node<T1, T2> *N1);
 	Node<T1, T2>* rotateLR(Node<T1, T2> *N1);
 	Node<T1, T2>* rotateRL(Node<T1, T2> *N1);
-	bool handleReorient();
+	bool iHandleReorient();
+	bool dHandleReorient(int dir = 0);
 	//Node<T1, T2>* findRML(const Node<T1, T2>* const node) const;
 public :
 	// constructors and destructor
@@ -102,6 +103,9 @@ public :
 
 template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::X = NULL;
+
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::T = NULL;
 
 template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::P = NULL;
@@ -391,7 +395,7 @@ T2 *RBTree<T1, T2>::find(const T1 &id) const {
 			X = X->getLft();
 		flag = false;
 		if (((X->getLft() != NULL) && (X->getLft()->getColor() == 1)) && ((X->getRgt() != NULL) && (X->getRgt()->getColor() == 1)))
-			handleReorient();
+			iHandleReorient();
 	}
 	if (X == NULL)
 		return NULL;
@@ -489,8 +493,8 @@ Node<T1, T2>* RBTree<T1, T2>::rotateRL(Node<T1, T2> *N1) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//        NAME: handleReorient
-// DESCRIPTION: handle the reorientation including recoloring and rotation.
+//        NAME: iHandleReorient
+// DESCRIPTION: handle the reorientation including recoloring and rotation for insertion
 //   ARGUMENTS: none 
 // USES GLOBAL: none
 // MODIFIES GL: root (possible)
@@ -500,7 +504,7 @@ Node<T1, T2>* RBTree<T1, T2>::rotateRL(Node<T1, T2> *N1) {
 //							KC 2015-02-23
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
-bool RBTree<T1, T2>::handleReorient() {
+bool RBTree<T1, T2>::iHandleReorient() {
 
 	// recoloring
 	X->setColor(1);
@@ -586,7 +590,7 @@ bool RBTree<T1, T2>::Insert(const T1 &id) {
 	X = P = GP = GGP = root;
 	while ((X != NULL) && (cmp(X->getID(), id) != 0)) {
 		if (((X->getLft() != NULL) && (X->getLft()->getColor() == 1)) && ((X->getRgt() != NULL) && (X->getRgt()->getColor() == 1)))
-			handleReorient();
+			iHandleReorient();
 		GGP = GP;
 		GP = P;
 		P = X;
@@ -613,7 +617,7 @@ bool RBTree<T1, T2>::Insert(const T1 &id) {
 	else
 		P->AddRgt(X);
 	if (P->getColor() == 1)
-		handleReorient();
+		iHandleReorient();
 
 	return true;
 }
@@ -624,7 +628,7 @@ bool RBTree<T1, T2>::Insert(const T1 &id) {
 //   ARGUMENTS: Node<T1, T2>* node - the top node
 // USES GLOBAL: none
 // MODIFIES GL: none
-//     RETURNS: Node<T1, T2>*
+//     RETURNS: bool
 //      AUTHOR: Kingston Chan
 // AUTHOR/DATE: KC 2015-02-11
 //							KC 2015-02-11
@@ -640,6 +644,106 @@ Node<T1, T2>* RBTree<T1, T2>::findRML(const Node<T1, T2>* const node) const{
 }*/
 
 ////////////////////////////////////////////////////////////////////////////////
+//        NAME: dHandleReorient
+// DESCRIPTION: handle the reorientation including recoloring and rotation for deletion
+//   ARGUMENTS: int dir - indicate the direction X is moving towards 
+// USES GLOBAL: none
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-26
+//							KC 2015-02-26
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+bool RBTree<T1, T2>::dHandleReorient(int dir) {
+	int Case = 0;
+
+	// decide the cases
+	if (((X->getLft() != NULL) && (X->getLft()->getColor() == 1)) || ((X->getRgt() != NULL) && (X->getRgt()->getColor == 1))) {
+		Case |= 4;
+		if ((dir == -1) && (X->getLft() != NULL) && (X->getLft()->getColor() == 1))
+			Case |= 1;
+		if ((dir == 1) && (X->getRgt() != NULL) && (X->getRgt()->getColor() == 1))
+			Case |= 1;
+	}
+	else {
+		if ((T->getLft() != NULL) && (T->getLft()->getColor() == 1))
+			Case |= 1;
+		else if ((T->getRgt() != NULL) && (T->getRgt()->getColor() == 1))
+			Case |= 2;
+	}
+
+	// execute with respect to case
+	switch(Case) {
+	case 0:	// case 2A1
+		P->setColor(0);
+		X->setColor(1);
+		T->setColor(1);
+		return true;
+	case 1:	// case 2A2
+		if (cmp(X->getID(), P->getID()) < 0) {	// T is on the right, double rotation
+			if (cmp(P->getID(), GP->getID()) < 0)
+				GP->AddLft(rotateRL(P));
+			else
+				GP->AddRgt(rotateRL(P));
+		}
+		else {	// T is on the left, single rotation
+			T->getLft()->setColor(0);
+			if (cmp(P->getID(), GP->getID()) < 0)
+				GP->AddLft(rotateLL(P));
+			else
+				GP->AddRgt(rotateLL(P));
+		}
+		X->setColor(1);
+		return true;
+	case 2:	// case 2A3
+		if (cmp(X->getID(), P->getID()) < 0) {	// T is on the right, single rotation
+			T->getRgt()->setColor(0);
+			if (cmp(P->getID(), GP->getID()) < 0)
+				GP->AddLft(rotateRR(P));
+			else
+				GP->AddRgt(rotateRR(P));
+		}
+		else {	// T is on the left, double rotation
+			if (cmp(P->getID(), GP->getID()) < 0)
+				GP->AddLft(rotateLR(P));
+			else
+				GP->AddRgt(rotateLR(P));
+		}
+		X->setColor(1);
+		return true;
+	case 4:	// case 2B2
+		// move down
+		GP = P;
+		P = X;
+		if (dir < 0) {
+			X = P->getLft();
+			T = P->getRgt();
+			// rotate
+			if (cmp(P->getID(), GP->getID()) < 0)
+				GP->AddLft(rotateRR(P));
+			else
+				GP->AddRgt(rotateRR(P));
+		}
+		else {
+			X = P->getRgt();
+			T = P->getLft();
+			// rotate
+			if (cmp(P->getID(), GP->getID()) < 0)
+				GP->AddLft(rotateLL(P));
+			else
+				GP->AddRgt(rotateLL(P));
+		}
+		return false; // not finished
+	case 5:	// case 2B1
+		return true;
+	default:
+		throw RBERR("case out of range");
+		return false;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
 //        NAME: Delete
 // DESCRIPTION: The user interface of deleting a node into the RB tree.
 //   ARGUMENTS: const T1 &id - the id of the new node that is to be deleted
@@ -650,11 +754,69 @@ Node<T1, T2>* RBTree<T1, T2>::findRML(const Node<T1, T2>* const node) const{
 // AUTHOR/DATE: KC 2015-02-10
 //							KC 2015-02-10
 ////////////////////////////////////////////////////////////////////////////////
-/*template<class T1, class T2>
+template<class T1, class T2>
 bool RBTree<T1, T2>::Delete(const T1 &id) {
-	root = cut(root, id);
-	return true;
-}*/
+	int Case = -1;
+
+	if (root == NULL)
+		return true;
+	
+	// find the Node
+	GP = P = X = T = root;
+	while ((X != NULL) && (X->getID() != id)) {
+		if (X->getColor == 0) {
+			if (dHandleReorient(cmp(id, X->getID())))
+				continue;
+		}
+		GP = P;
+		P = X;
+		if (cmp(id, X->getID()) < 0)
+			X = X->getLft();
+		else
+			X = X->getRgt();
+	}
+	if (X == NULL)
+		return true;
+	
+	// delete
+	Case = ((X->getRgt() != NULL) << 1) + (X->getLft() != NULL);
+	switch(Case) {
+	case 0: // X is a leaf
+		if (cmp(X->getID(), P->getID()) < 0)
+			P->AddLft(NULL);
+		else
+			P->AddRgt(NULL);
+		delete X;
+		X = NULL;
+		break;
+	case 1: // X has a left son
+		if (cmp(X->getID(), P->getID()) < 0)
+			P->AddLft(X->getLft());
+		else
+			P->AddRgt(X->getLft());
+
+		X->AddLft(NULL);
+		delete X;
+		X = NULL;
+		break;
+	case 2: // X has a right son
+		if (cmp(X->getID(), P->getID()) < 0)
+			P->AddLft(X->getRgt());
+		else
+			P->AddRgt(X->getRgt());
+
+		X->AddRgt(NULL);
+		delete X;
+		X = NULL;
+		break;
+	case 3: // X has both left and right son
+
+	default:
+		throw RBERR("Case out of range");
+		return false;
+	}
+
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: print
