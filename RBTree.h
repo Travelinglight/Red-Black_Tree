@@ -724,6 +724,11 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 				GP->AddLft(rotateRR(P));
 			else
 				GP->AddRgt(rotateRR(P));
+
+			// roll back
+			X = P;
+			P = T;
+			T = P->getRgt();
 		}
 		else {
 			X = P->getRgt();
@@ -733,8 +738,13 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 				GP->AddLft(rotateLL(P));
 			else
 				GP->AddRgt(rotateLL(P));
+
+			// roll back
+			X = P;
+			P = T;
+			T = P->getLft();
 		}
-		return false; // not finished
+		return true;
 	case 5:	// case 2B1
 		return true;
 	default:
@@ -757,6 +767,7 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 template<class T1, class T2>
 bool RBTree<T1, T2>::Delete(const T1 &id) {
 	int Case = -1;
+	Node<T1, T2> *dp = NULL; // pointer to the target node's father
 
 	if (root == NULL)
 		return true;
@@ -764,10 +775,8 @@ bool RBTree<T1, T2>::Delete(const T1 &id) {
 	// find the Node
 	GP = P = X = T = root;
 	while ((X != NULL) && (X->getID() != id)) {
-		if (X->getColor == 0) {
-			if (dHandleReorient(cmp(id, X->getID())))
-				continue;
-		}
+		if (X->getColor() == 0)
+			dHandleReorient(cmp(id, X->getID()))
 		GP = P;
 		P = X;
 		if (cmp(id, X->getID()) < 0)
@@ -775,42 +784,79 @@ bool RBTree<T1, T2>::Delete(const T1 &id) {
 		else
 			X = X->getRgt();
 	}
+
+	// not found
 	if (X == NULL)
 		return true;
+	
+	dp = X;	// mark the target's father
 	
 	// delete
 	Case = ((X->getRgt() != NULL) << 1) + (X->getLft() != NULL);
 	switch(Case) {
 	case 0: // X is a leaf
+		// reorientation
+		if (X->getColor() == 0)
+			dHandleReorient(0);
+		// delete the node
 		if (cmp(X->getID(), P->getID()) < 0)
 			P->AddLft(NULL);
 		else
 			P->AddRgt(NULL);
+		// release the space
 		delete X;
 		X = NULL;
-		break;
+		return true;
 	case 1: // X has a left son
+		// reorientation
+		if (X->getColor() == 0)
+			dHandleReorient(-1);
+		// delete the root
 		if (cmp(X->getID(), P->getID()) < 0)
 			P->AddLft(X->getLft());
 		else
 			P->AddRgt(X->getLft());
-
+		// release the space
 		X->AddLft(NULL);
 		delete X;
 		X = NULL;
-		break;
+		return true;
 	case 2: // X has a right son
+		// reorientation
+		if (X->getColor() == 0)
+			dHandleReorient(1);
+		// delete the root
 		if (cmp(X->getID(), P->getID()) < 0)
 			P->AddLft(X->getRgt());
 		else
 			P->AddRgt(X->getRgt());
-
+		// release the space
 		X->AddRgt(NULL);
 		delete X;
 		X = NULL;
-		break;
+		return true;
 	case 3: // X has both left and right son
-
+		// reorientation
+		if (X->getColor() == 0)
+			dHandleReorient(-1);
+		// find the in-order predecessor
+		GP = P;
+		P = X;
+		X = X->getLft();
+		if (X->getColor() == 0)
+			dHandleReorient(1);
+		while (X->getRgt() != NULL) {
+			GP = P;
+			P = X;
+			X = X->getRgt();
+			if (X->getColor() == 0)
+				dHandleReorient(1);
+		}
+		P->AddRgt(X->getLft());
+		X->AddLft(NULL);
+		*dp = *X;
+		delete X;
+		return true;
 	default:
 		throw RBERR("Case out of range");
 		return false;
