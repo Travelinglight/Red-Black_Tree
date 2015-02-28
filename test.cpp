@@ -69,9 +69,12 @@ int main() {
 		RBT1.Insert(40);
 		RBT1.Insert(5);
 		RBT1.Insert(55);
-		RBT1.Insert(64);
-		RBT1.Insert(66);
-		RBT1.Insert(67);
+		//RBT1.Insert(64);
+		//RBT1.Insert(66);
+		//RBT1.Insert(67);
+		RBT1.print();
+		cout << "------------------delete----------------" << endl;
+		RBT1.Delete(30);
 		RBT1.print();
 	}
 	{
@@ -79,9 +82,10 @@ int main() {
 		RBTree<A> RBT1(cmp);
 		for (int i = 1; i < 8; i++)
 			RBT1.Insert(i);
-		RBT1.Delete(7);
-		RBT1.Delete(6);
-		RBT1.Delete(4);
+		//RBT1.Delete(7);
+		//RBT1.Delete(5);
+		//RBT1.Delete(6);
+		//RBT1.Delete(4);
 		RBT1.print();
 		cout << "----------------------------------------" << endl;
 		RBTree<A> RBT2(cmp);
@@ -90,8 +94,8 @@ int main() {
 		//RBT2.print();
 		//RBT2.Delete(1);
 		//RBT2.Delete(2);
-		//RBT2.Delete(4);
-		RBT2.Delete(6);
+		RBT2.Delete(4);
+		//RBT2.Delete(6);
 		RBT2.print();
 	}
 	{ // RBTree(const Node<T1, T2> &head, int(*compare)(const T1 &a, const T1 &b) = dCmp);

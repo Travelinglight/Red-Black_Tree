@@ -37,7 +37,7 @@ Kingston Chan
 using namespace std;
 
 template<typename T1>
-int dCmp(const T1 &a, const T1 &b) {
+int dCmp(const T1 &a, const T1 &b) {	// default compare function
 	if (a > b)
 		return 1;
 	if (a < b)
@@ -45,7 +45,7 @@ int dCmp(const T1 &a, const T1 &b) {
 	return 0;
 }
 
-class RBERR {
+class RBERR {	// used to throw out when error occurs
 public :
 	std::string error;
 	RBERR();
@@ -112,16 +112,16 @@ template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::X = NULL;
 
 template<class T1, class T2>
-Node<T1, T2>* RBTree<T1, T2>::T = NULL;
+Node<T1, T2>* RBTree<T1, T2>::T = NULL;	// X's sibling
 
 template<class T1, class T2>
-Node<T1, T2>* RBTree<T1, T2>::P = NULL;
+Node<T1, T2>* RBTree<T1, T2>::P = NULL;	// X's parent
 
 template<class T1, class T2>
-Node<T1, T2>* RBTree<T1, T2>::GP = NULL;
+Node<T1, T2>* RBTree<T1, T2>::GP = NULL; // X's grandparent
 
 template<class T1, class T2>
-Node<T1, T2>* RBTree<T1, T2>::GGP = NULL;
+Node<T1, T2>* RBTree<T1, T2>::GGP = NULL; // X's great-grandparent
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: RBTree
@@ -310,6 +310,10 @@ bool RBTree<T1, T2>::addRoot(const T1 &id, const T2 * const rcd) {
 		throw RBERR("root already exists");
 	}
 	root = new Node<T1, T2>(id, rcd);
+	if (root == NULL) {
+		throw RBERR("Out of space");
+		return false;
+	}
 	size = calcSize(root);
 	return true;
 }
@@ -332,6 +336,10 @@ bool RBTree<T1, T2>::addRoot(const T1 &id, const T2 &rcd) {
 		throw RBERR("root already exists");
 	}
 	root = new Node<T1, T2>(id, rcd);
+	if (root == NULL) {
+		throw RBERR("Out of space");
+		return false;
+	}
 	size = calcSize(root);
 	return true;
 }
@@ -353,6 +361,10 @@ bool RBTree<T1, T2>::addRoot(const Node<T1, T2> &New) {
 		throw RBERR("root already exists");
 	}
 	root = new Node<T1, T2>(New);
+	if (root == NULL) {
+		throw RBERR("Out of space");
+		return false;
+	}
 	size = calcSize(root);
 	return true;
 }
@@ -570,7 +582,7 @@ Node<T1, T2>* RBTree<T1, T2>::iRotateRL(Node<T1, T2> *N1) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//        NAME: iRotateLL
+//        NAME: dRotateLL
 // DESCRIPTION: The single rotation LL and recoloring of RB tree used for Deletion.
 //   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
 // USES GLOBAL: none
@@ -582,34 +594,7 @@ Node<T1, T2>* RBTree<T1, T2>::iRotateRL(Node<T1, T2> *N1) {
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::dRotateLL(Node<T1, T2> *N1) {
-	Node<T1, T2> *NL = N1->getLft();
-	Node<T1, T2> *NR = N1->getRgt();
-	Node<T1, T2> *NRR = NR->getRgt();
-
-	N1->setColor(1 - N1->getColor());
-	if (NL != NULL)
-		NL->setColor(1 - NL->getColor());
-	if (NR != NULL)
-		NR->setColor(1 - NR->getColor());
-	if (NRR != NULL)
-		NRR->setColor(1 - NRR->getColor());
-	return rotateLL(N1);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-//        NAME: iRotateRR
-// DESCRIPTION: The single rotation RR and recoloring of RB tree used for Deletion.
-//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
-// USES GLOBAL: none
-// MODIFIES GL: root (possible)
-//     RETURNS: Node<T1, T2>*
-//      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-28
-//							KC 2015-02-28
-////////////////////////////////////////////////////////////////////////////////
-template<class T1, class T2>
-Node<T1, T2>* RBTree<T1, T2>::dRotateRR(Node<T1, T2> *N1) {
+	cout << "dRotateLL" << endl;
 	Node<T1, T2> *NL = N1->getLft();
 	Node<T1, T2> *NR = N1->getRgt();
 	Node<T1, T2> *NLL = NL->getLft();
@@ -621,11 +606,41 @@ Node<T1, T2>* RBTree<T1, T2>::dRotateRR(Node<T1, T2> *N1) {
 		NR->setColor(1 - NR->getColor());
 	if (NLL != NULL)
 		NLL->setColor(1 - NLL->getColor());
+
+	return rotateLL(N1);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: dRotateRR
+// DESCRIPTION: The single rotation RR and recoloring of RB tree used for Deletion.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
+// USES GLOBAL: none
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-28
+//							KC 2015-02-28
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::dRotateRR(Node<T1, T2> *N1) {
+	cout << "dRotateRR" << endl;
+	Node<T1, T2> *NL = N1->getLft();
+	Node<T1, T2> *NR = N1->getRgt();
+	Node<T1, T2> *NRR = NR->getRgt();
+
+	N1->setColor(1 - N1->getColor());
+	if (NL != NULL)
+		NL->setColor(1 - NL->getColor());
+	if (NR != NULL)
+		NR->setColor(1 - NR->getColor());
+	if (NRR != NULL)
+		NRR->setColor(1 - NRR->getColor());
 	return rotateRR(N1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//        NAME: iRotateLR
+//        NAME: dRotateLR
 // DESCRIPTION: The double rotation LR and recoloring of RB tree used for Deletion.
 //   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
 // USES GLOBAL: none
@@ -637,6 +652,7 @@ Node<T1, T2>* RBTree<T1, T2>::dRotateRR(Node<T1, T2> *N1) {
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::dRotateLR(Node<T1, T2> *N1) {
+	cout << "dRotateLR" << endl;
 	Node<T1, T2> *N2 = N1->getRgt();
 	N1->setColor(1 - N1->getColor());
 	if (N2 != NULL)
@@ -645,7 +661,7 @@ Node<T1, T2>* RBTree<T1, T2>::dRotateLR(Node<T1, T2> *N1) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//        NAME: iRotateRL
+//        NAME: dRotateRL
 // DESCRIPTION: The double rotation RL and recoloring of RB tree used for Deletion.
 //   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
 // USES GLOBAL: none
@@ -657,13 +673,13 @@ Node<T1, T2>* RBTree<T1, T2>::dRotateLR(Node<T1, T2> *N1) {
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::dRotateRL(Node<T1, T2> *N1) {
+	cout << "dRotateRL" << endl;
 	Node<T1, T2> *N2= N1->getLft();
 	N1->setColor(1 - N1->getColor());
 	if (N2 != NULL)
 		N2->setColor(1 - N2->getColor());
 	return rotateRL(N1);
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: iHandleReorient
@@ -801,7 +817,7 @@ bool RBTree<T1, T2>::Insert(const T1 &id) {
 //   ARGUMENTS: int dir - indicate the direction X is moving towards 
 // USES GLOBAL: none
 // MODIFIES GL: root (possible)
-//     RETURNS: Node<T1, T2>*
+//     RETURNS: bool
 //      AUTHOR: Kingston Chan
 // AUTHOR/DATE: KC 2015-02-26
 //							KC 2015-02-26
@@ -828,20 +844,26 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 	// execute with respect to case
 	switch(Case) {
 	case 0:	// case 2A1
+		cout << "case 2A1" << endl;
 		P->setColor(0);
 		X->setColor(1);
 		T->setColor(1);
 		return true;
 	case 1:	// case 2A2
 		if (cmp(X->getID(), P->getID()) < 0) {	// T is on the right, double rotation
-			if (cmp(P->getID(), GP->getID()) < 0)
+			cout << "case 2A2" << endl;
+			if (P == GP)
+				root = dRotateRL(P);
+			else if (cmp(P->getID(), GP->getID()) < 0)
 				GP->AddLft(dRotateRL(P));
 			else
 				GP->AddRgt(dRotateRL(P));
 		}
 		else {	// T is on the left, single rotation
-			T->getLft()->setColor(0);
-			if (cmp(P->getID(), GP->getID()) < 0)
+			cout << "case 2A3" << endl;
+			if (P == GP)
+				root = dRotateLL(P);
+			else if (cmp(P->getID(), GP->getID()) < 0)
 				GP->AddLft(dRotateLL(P));
 			else
 				GP->AddRgt(dRotateLL(P));
@@ -850,14 +872,19 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 		return true;
 	case 2:	// case 2A3
 		if (cmp(X->getID(), P->getID()) < 0) {	// T is on the right, single rotation
-			T->getRgt()->setColor(0);
-			if (cmp(P->getID(), GP->getID()) < 0)
+			cout << "case 2A3" << endl;
+			if (P == GP)
+				root = dRotateRR(P);
+			else if (cmp(P->getID(), GP->getID()) < 0)
 				GP->AddLft(dRotateRR(P));
 			else
 				GP->AddRgt(dRotateRR(P));
 		}
 		else {	// T is on the left, double rotation
-			if (cmp(P->getID(), GP->getID()) < 0)
+			cout << "case 2A2" << endl;
+			if (P == GP)
+				root = dRotateLR(P);
+			else if (cmp(P->getID(), GP->getID()) < 0)
 				GP->AddLft(dRotateLR(P));
 			else
 				GP->AddRgt(dRotateLR(P));
@@ -865,6 +892,7 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 		X->setColor(1);
 		return true;
 	case 4:	// case 2B2
+		cout << "case 2B2" << endl;
 		// move down
 		GP = P;
 		P = X;
@@ -872,7 +900,9 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 			X = P->getLft();
 			T = P->getRgt();
 			// rotate
-			if (cmp(P->getID(), GP->getID()) < 0)
+			if (P == GP)
+				root = dRotateRR(P);
+			else if (cmp(P->getID(), GP->getID()) < 0)
 				GP->AddLft(dRotateRR(P));
 			else
 				GP->AddRgt(dRotateRR(P));
@@ -886,6 +916,8 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 			X = P->getRgt();
 			T = P->getLft();
 			// rotate
+			if (P == GP)
+				root = dRotateLL(P);
 			if (cmp(P->getID(), GP->getID()) < 0)
 				GP->AddLft(dRotateLL(P));
 			else
@@ -898,6 +930,7 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 		}
 		return true;
 	case 5:	// case 2B1
+		cout << "case 2B1" << endl;
 		return true;
 	default:
 		throw RBERR("case out of range");
@@ -907,14 +940,14 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: Delete
-// DESCRIPTION: The user interface of deleting a node into the RB tree.
+// DESCRIPTION: Deleting a node from the RB tree.
 //   ARGUMENTS: const T1 &id - the id of the new node that is to be deleted
 // USES GLOBAL: none
 // MODIFIES GL: root (possible)
 //     RETURNS: bool
 //      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-10
-//							KC 2015-02-10
+// AUTHOR/DATE: KC 2015-02-27
+//							KC 2015-02-27
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 bool RBTree<T1, T2>::Delete(const T1 &id) {
@@ -962,7 +995,7 @@ bool RBTree<T1, T2>::Delete(const T1 &id) {
 		// release the space
 		delete X;
 		X = NULL;
-		return true;
+		break;
 	case 1: // X has a left son
 		// reorientation
 		if (X->getColor() == 0)
@@ -976,7 +1009,7 @@ bool RBTree<T1, T2>::Delete(const T1 &id) {
 		X->AddLft(NULL);
 		delete X;
 		X = NULL;
-		return true;
+		break;
 	case 2: // X has a right son
 		// reorientation
 		if (X->getColor() == 0)
@@ -990,7 +1023,7 @@ bool RBTree<T1, T2>::Delete(const T1 &id) {
 		X->AddRgt(NULL);
 		delete X;
 		X = NULL;
-		return true;
+		break;
 	case 3: // X has both left and right son
 		// reorientation
 		if (X->getColor() == 0)
@@ -1018,12 +1051,14 @@ bool RBTree<T1, T2>::Delete(const T1 &id) {
 		X->AddLft(NULL);
 		*dp = *X;
 		delete X;
-		return true;
+		break;
 	default:
 		throw RBERR("Case out of range");
 		return false;
 	}
-
+	if (root != NULL)
+		root->setColor(0);
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
