@@ -72,9 +72,16 @@ private :
 	Node<T1, T2>* rotateRR(Node<T1, T2> *N1);
 	Node<T1, T2>* rotateLR(Node<T1, T2> *N1);
 	Node<T1, T2>* rotateRL(Node<T1, T2> *N1);
+	Node<T1, T2>* iRotateLL(Node<T1, T2> *N1);
+	Node<T1, T2>* iRotateRR(Node<T1, T2> *N1);
+	Node<T1, T2>* iRotateLR(Node<T1, T2> *N1);
+	Node<T1, T2>* iRotateRL(Node<T1, T2> *N1);
+	Node<T1, T2>* dRotateLL(Node<T1, T2> *N1);
+	Node<T1, T2>* dRotateRR(Node<T1, T2> *N1);
+	Node<T1, T2>* dRotateLR(Node<T1, T2> *N1);
+	Node<T1, T2>* dRotateRL(Node<T1, T2> *N1);
 	bool iHandleReorient();
 	bool dHandleReorient(int dir = 0);
-	//Node<T1, T2>* findRML(const Node<T1, T2>* const node) const;
 public :
 	// constructors and destructor
 	RBTree();
@@ -91,7 +98,7 @@ public :
 	bool addRoot(const Node<T1, T2> &New);
 
 	bool Insert(const T1 &id);
-	//bool Delete(const T1 &id);
+	bool Delete(const T1 &id);
 	bool empty();
 
 	int getSize() const { return size; }
@@ -418,8 +425,6 @@ Node<T1, T2>* RBTree<T1, T2>::rotateLL(Node<T1, T2> *N1) {
 	Node<T1, T2> *N2 = N1->getLft();
 	N1->AddLft(N2->getRgt());
 	N2->AddRgt(N1);
-	N1->setColor(1 - N1->getColor());
-	N2->setColor(2 - N2->getColor());
 	return N2;
 }
 
@@ -439,14 +444,12 @@ Node<T1, T2>* RBTree<T1, T2>::rotateRR(Node<T1, T2> *N1) {
 	Node<T1, T2> *N2 = N1->getRgt();
 	N1->AddRgt(N2->getLft());
 	N2->AddLft(N1);
-	N1->setColor(1 - N1->getColor());
-	N2->setColor(1 - N2->getColor());
 	return N2;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: rotateLR
-// DESCRIPTION: The single rotation LR of Red-Black tree.
+// DESCRIPTION: The double rotation LR of Red-Black tree.
 //   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
 // USES GLOBAL: none
 // MODIFIES GL: root (possible)
@@ -459,8 +462,6 @@ template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::rotateLR(Node<T1, T2> *N1) {
 	Node<T1, T2> *N2 = N1->getLft();
 	Node<T1, T2> *N3 = N2->getRgt();
-	N1->setColor(1 - N1->getColor());
-	N3->setColor(1 - N3->getColor());
 	N2->AddRgt(N3->getLft());
 	N1->AddLft(N3->getRgt());
 	N3->AddLft(N2);
@@ -470,7 +471,7 @@ Node<T1, T2>* RBTree<T1, T2>::rotateLR(Node<T1, T2> *N1) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: rotateRL
-// DESCRIPTION: The single rotation RL of RB tree.
+// DESCRIPTION: The double rotation RL of RB tree.
 //   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
 // USES GLOBAL: none
 // MODIFIES GL: root (possible)
@@ -483,14 +484,186 @@ template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::rotateRL(Node<T1, T2> *N1) {
 	Node<T1, T2> *N2 = N1->getRgt();
 	Node<T1, T2> *N3 = N2->getLft();
-	N1->setColor(1 - N1->getColor());
-	N3->setColor(1 - N3->getColor());
 	N2->AddLft(N3->getRgt());
 	N1->AddRgt(N3->getLft());
 	N3->AddLft(N1);
 	N3->AddRgt(N2);
 	return N3;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: iRotateLL
+// DESCRIPTION: The single rotation LL and recoloring of RB tree used for Insertion.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
+// USES GLOBAL: none
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-28
+//							KC 2015-02-28
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::iRotateLL(Node<T1, T2> *N1) {
+	Node<T1, T2> *N2 = N1->getLft();
+	N1->setColor(1 - N1->getColor());
+	N2->setColor(1 - N2->getColor());
+	return rotateLL(N1);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: iRotateRR
+// DESCRIPTION: The single rotation RR and recoloring of RB tree used for Insertion.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
+// USES GLOBAL: none
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-28
+//							KC 2015-02-28
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::iRotateRR(Node<T1, T2> *N1) {
+	Node<T1, T2> *N2 = N1->getRgt();
+	N1->setColor(1 - N1->getColor());
+	N2->setColor(1 - N2->getColor());
+	return rotateRR(N1);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: iRotateLR
+// DESCRIPTION: The double rotation LR and recoloring of RB tree used for Insertion.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
+// USES GLOBAL: none
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-28
+//							KC 2015-02-28
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::iRotateLR(Node<T1, T2> *N1) {
+	Node<T1, T2> *N2 = N1->getLft();
+	Node<T1, T2> *N3 = N2->getRgt();
+	N1->setColor(1 - N1->getColor());
+	N3->setColor(1 - N3->getColor());
+	return rotateLR(N1);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: iRotateRL
+// DESCRIPTION: The double rotation RL and recoloring of RB tree used for Insertion.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
+// USES GLOBAL: none
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-28
+//							KC 2015-02-28
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::iRotateRL(Node<T1, T2> *N1) {
+	Node<T1, T2> *N2 = N1->getRgt();
+	Node<T1, T2> *N3 = N2->getLft();
+	N1->setColor(1 - N1->getColor());
+	N3->setColor(1 - N3->getColor());
+	return rotateRL(N1);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: iRotateLL
+// DESCRIPTION: The single rotation LL and recoloring of RB tree used for Deletion.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
+// USES GLOBAL: none
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-28
+//							KC 2015-02-28
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::dRotateLL(Node<T1, T2> *N1) {
+	Node<T1, T2> *NL = N1->getLft();
+	Node<T1, T2> *NR = N1->getRgt();
+	Node<T1, T2> *NRR = NR->getRgt();
+
+	N1->setColor(1 - N1->getColor());
+	if (NL != NULL)
+		NL->setColor(1 - NL->getColor());
+	if (NR != NULL)
+		NR->setColor(1 - NR->getColor());
+	if (NRR != NULL)
+		NRR->setColor(1 - NRR->getColor());
+	return rotateLL(N1);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: iRotateRR
+// DESCRIPTION: The single rotation RR and recoloring of RB tree used for Deletion.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
+// USES GLOBAL: none
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-28
+//							KC 2015-02-28
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::dRotateRR(Node<T1, T2> *N1) {
+	Node<T1, T2> *NL = N1->getLft();
+	Node<T1, T2> *NR = N1->getRgt();
+	Node<T1, T2> *NLL = NL->getLft();
+
+	N1->setColor(1 - N1->getColor());
+	if (NL != NULL)
+		NL->setColor(1 - NL->getColor());
+	if (NR != NULL)
+		NR->setColor(1 - NR->getColor());
+	if (NLL != NULL)
+		NLL->setColor(1 - NLL->getColor());
+	return rotateRR(N1);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: iRotateLR
+// DESCRIPTION: The double rotation LR and recoloring of RB tree used for Deletion.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
+// USES GLOBAL: none
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-28
+//							KC 2015-02-28
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::dRotateLR(Node<T1, T2> *N1) {
+	Node<T1, T2> *N2 = N1->getRgt();
+	N1->setColor(1 - N1->getColor());
+	if (N2 != NULL)
+		N2->setColor(1 - N2->getColor());
+	return rotateLR(N1);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: iRotateRL
+// DESCRIPTION: The double rotation RL and recoloring of RB tree used for Deletion.
+//   ARGUMENTS: Node<T1, T2> *N1 - the trouble finder node
+// USES GLOBAL: none
+// MODIFIES GL: root (possible)
+//     RETURNS: Node<T1, T2>*
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-28
+//							KC 2015-02-28
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>* RBTree<T1, T2>::dRotateRL(Node<T1, T2> *N1) {
+	Node<T1, T2> *N2= N1->getLft();
+	N1->setColor(1 - N1->getColor());
+	if (N2 != NULL)
+		N2->setColor(1 - N2->getColor());
+	return rotateRL(N1);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //        NAME: iHandleReorient
@@ -519,38 +692,38 @@ bool RBTree<T1, T2>::iHandleReorient() {
 		case 0:	// single rotate with right
 			cout << "rotateRR" << endl;
 			if (GP == GGP)
-				root = rotateRR(GP);
+				root = iRotateRR(GP);
 			else if (cmp(GP->getID(), GGP->getID()) < 0)
-				GGP->AddLft(rotateRR(GP));
+				GGP->AddLft(iRotateRR(GP));
 			else
-				GGP->AddRgt(rotateRR(GP));
+				GGP->AddRgt(iRotateRR(GP));
 			break;
 		case 1:	// double rotate right-left
 			cout << "rotateRL" << endl;
 			if (GP == GGP)
-				root = rotateRL(GP);
+				root = iRotateRL(GP);
 			else if (cmp(GP->getID(), GGP->getID()) < 0)
-				GGP->AddLft(rotateRL(GP));
+				GGP->AddLft(iRotateRL(GP));
 			else
-				GGP->AddRgt(rotateRL(GP));
+				GGP->AddRgt(iRotateRL(GP));
 			break;
 		case 2: // double rotate left-right
 			cout << "rotateLR" << endl;
 			if (GP == GGP)
-				root = rotateLR(GP);
+				root = iRotateLR(GP);
 			else if (cmp(GP->getID(), GGP->getID()) < 0)
-				GGP->AddLft(rotateLR(GP));
+				GGP->AddLft(iRotateLR(GP));
 			else
-				GGP->AddRgt(rotateLR(GP));
+				GGP->AddRgt(iRotateLR(GP));
 			break;
 		case 3: // single rotate with right
 			cout << "rotateLL" << endl;
 			if (GP == GGP)
-				root = rotateRR(GP);
+				root = iRotateLL(GP);
 			else if (cmp(GP->getID(), GGP->getID()) < 0)
-				GGP->AddLft(rotateLL(GP));
+				GGP->AddLft(iRotateLL(GP));
 			else
-				GGP->AddRgt(rotateLL(GP));
+				GGP->AddRgt(iRotateLL(GP));
 			break;
 		default:
 			throw RBERR("Case out of range");
@@ -623,27 +796,6 @@ bool RBTree<T1, T2>::Insert(const T1 &id) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//        NAME: findRML
-// DESCRIPTION: To find the rightmost posterity of a node in its left sub-tree.
-//   ARGUMENTS: Node<T1, T2>* node - the top node
-// USES GLOBAL: none
-// MODIFIES GL: none
-//     RETURNS: bool
-//      AUTHOR: Kingston Chan
-// AUTHOR/DATE: KC 2015-02-11
-//							KC 2015-02-11
-////////////////////////////////////////////////////////////////////////////////
-/*template<class T1, class T2>
-Node<T1, T2>* RBTree<T1, T2>::findRML(const Node<T1, T2>* const node) const{
-	Node<T1, T2>* RML = node->getLft();
-	if (RML == NULL)
-		return NULL;
-	while (RML->getRgt() != NULL)
-		RML = RML->getRgt();
-	return RML;
-}*/
-
-////////////////////////////////////////////////////////////////////////////////
 //        NAME: dHandleReorient
 // DESCRIPTION: handle the reorientation including recoloring and rotation for deletion
 //   ARGUMENTS: int dir - indicate the direction X is moving towards 
@@ -659,7 +811,7 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 	int Case = 0;
 
 	// decide the cases
-	if (((X->getLft() != NULL) && (X->getLft()->getColor() == 1)) || ((X->getRgt() != NULL) && (X->getRgt()->getColor == 1))) {
+	if (((X->getLft() != NULL) && (X->getLft()->getColor() == 1)) || ((X->getRgt() != NULL) && (X->getRgt()->getColor() == 1))) {
 		Case |= 4;
 		if ((dir == -1) && (X->getLft() != NULL) && (X->getLft()->getColor() == 1))
 			Case |= 1;
@@ -683,16 +835,16 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 	case 1:	// case 2A2
 		if (cmp(X->getID(), P->getID()) < 0) {	// T is on the right, double rotation
 			if (cmp(P->getID(), GP->getID()) < 0)
-				GP->AddLft(rotateRL(P));
+				GP->AddLft(dRotateRL(P));
 			else
-				GP->AddRgt(rotateRL(P));
+				GP->AddRgt(dRotateRL(P));
 		}
 		else {	// T is on the left, single rotation
 			T->getLft()->setColor(0);
 			if (cmp(P->getID(), GP->getID()) < 0)
-				GP->AddLft(rotateLL(P));
+				GP->AddLft(dRotateLL(P));
 			else
-				GP->AddRgt(rotateLL(P));
+				GP->AddRgt(dRotateLL(P));
 		}
 		X->setColor(1);
 		return true;
@@ -700,15 +852,15 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 		if (cmp(X->getID(), P->getID()) < 0) {	// T is on the right, single rotation
 			T->getRgt()->setColor(0);
 			if (cmp(P->getID(), GP->getID()) < 0)
-				GP->AddLft(rotateRR(P));
+				GP->AddLft(dRotateRR(P));
 			else
-				GP->AddRgt(rotateRR(P));
+				GP->AddRgt(dRotateRR(P));
 		}
 		else {	// T is on the left, double rotation
 			if (cmp(P->getID(), GP->getID()) < 0)
-				GP->AddLft(rotateLR(P));
+				GP->AddLft(dRotateLR(P));
 			else
-				GP->AddRgt(rotateLR(P));
+				GP->AddRgt(dRotateLR(P));
 		}
 		X->setColor(1);
 		return true;
@@ -721,9 +873,9 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 			T = P->getRgt();
 			// rotate
 			if (cmp(P->getID(), GP->getID()) < 0)
-				GP->AddLft(rotateRR(P));
+				GP->AddLft(dRotateRR(P));
 			else
-				GP->AddRgt(rotateRR(P));
+				GP->AddRgt(dRotateRR(P));
 
 			// roll back
 			X = P;
@@ -735,9 +887,9 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 			T = P->getLft();
 			// rotate
 			if (cmp(P->getID(), GP->getID()) < 0)
-				GP->AddLft(rotateLL(P));
+				GP->AddLft(dRotateLL(P));
 			else
-				GP->AddRgt(rotateLL(P));
+				GP->AddRgt(dRotateLL(P));
 
 			// roll back
 			X = P;
@@ -774,15 +926,19 @@ bool RBTree<T1, T2>::Delete(const T1 &id) {
 	
 	// find the Node
 	GP = P = X = T = root;
-	while ((X != NULL) && (X->getID() != id)) {
+	while ((X != NULL) && (cmp(id, X->getID()) != 0)) {
 		if (X->getColor() == 0)
-			dHandleReorient(cmp(id, X->getID()))
+			dHandleReorient(cmp(id, X->getID()));
 		GP = P;
 		P = X;
-		if (cmp(id, X->getID()) < 0)
+		if (cmp(id, X->getID()) < 0) {
 			X = X->getLft();
-		else
+			T = P->getRgt();
+		}
+		else {
 			X = X->getRgt();
+			T = P->getLft();
+		}
 	}
 
 	// not found
@@ -843,16 +999,22 @@ bool RBTree<T1, T2>::Delete(const T1 &id) {
 		GP = P;
 		P = X;
 		X = X->getLft();
+		T = P->getRgt();
 		if (X->getColor() == 0)
 			dHandleReorient(1);
 		while (X->getRgt() != NULL) {
 			GP = P;
 			P = X;
 			X = X->getRgt();
+			T = P->getLft();
 			if (X->getColor() == 0)
 				dHandleReorient(1);
 		}
-		P->AddRgt(X->getLft());
+		// delete
+		if (cmp(X->getID(), P->getID()) < 0)
+			P->AddLft(X->getLft());
+		else
+			P->AddRgt(X->getLft());
 		X->AddLft(NULL);
 		*dp = *X;
 		delete X;

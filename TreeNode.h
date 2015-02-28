@@ -463,25 +463,46 @@ void Node<T1, T2>::print() const{
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	GetConsoleScreenBufferInfo( hstdout, &csbi );
 	
-	// set colors
-	if (color == 0)
+	// print ID
+	if (color == 0)	// set color
 		SetConsoleTextAttribute( hstdout, 0xF0 );
 	else if (color == 1)
 		SetConsoleTextAttribute( hstdout, 0xFC );
 	else
 		return;
+	cout << ID;	// output
+	SetConsoleTextAttribute(hstdout, csbi.wAttributes);	// return color
 
-	// print the infomation in the right color
-	cout << ID << ": h-" << height << "  l-";
-	if (Lft != NULL)
-		cout << '(' << Lft->getID() << ')';
+	// print Lft son
+	cout << ": h-" << height << "  l-";
+	cout << '(';
+	if (Lft != NULL) {
+		if (Lft->getColor() == 0)	// set color
+			SetConsoleTextAttribute(hstdout, 0xF0);
+		else if (Lft->getColor() == 1)
+			SetConsoleTextAttribute(hstdout, 0xFC);
+		else
+			return;
+		cout << Lft->getID(); // output
+		SetConsoleTextAttribute(hstdout, csbi.wAttributes);	// return color
+	}
+	cout << ')';
+
+	// print right son
 	cout << "  r-";
-	if (Rgt != NULL)
-		cout << '(' << Rgt->getID() << ')';
+	cout << '(';
+	if (Rgt != NULL) {
+		if (Rgt->getColor() == 0)	// set color
+			SetConsoleTextAttribute(hstdout, 0xF0);
+		else if (Rgt->getColor() == 1)
+			SetConsoleTextAttribute(hstdout, 0xFC);
+		else
+			return;
+		cout << Rgt->getID(); // output
+		SetConsoleTextAttribute(hstdout, csbi.wAttributes);	// return color
+	}
+	cout << ')';
 	cout << endl;
-
-	// return to the original settings
-	SetConsoleTextAttribute( hstdout, csbi.wAttributes );
 
 	if (Lft != NULL)
 		Lft->print();
