@@ -28,13 +28,532 @@ Kingston Chan
 #ifndef RBTREE_H
 #define RBTREE_H
 
-#include "TreeNode.h"
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <cstdlib>
-
+#include <windows.h>
 using namespace std;
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////Tree Node//////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+class NULLT {};
+
+inline int MAX(int a, int b) {
+	return a > b ? a : b;
+}
+
+class NodeERR {	// used to throw out when error occurs
+public :
+	std::string error;
+	NodeERR();
+	NodeERR(std::string info) {
+		error = info;
+	}
+};
+
+template<class T1, class T2 = NULLT>
+class Node {
+private:
+	T1 ID;
+	T2 *Rcd;	// record
+	Node *Lft, *Rgt;
+	int height;
+	int color;
+
+public:
+	// constructor and destructor
+	Node();
+	Node(const T1 &id, const T2 * const rcd = NULL, int clr = 0);
+	Node(const T1 &id, const T2 &rcd, int clr = 0);
+	Node(const Node<T1, T2> &New);
+	~Node();
+
+	// modify the info of private members
+	bool setID(const T1 &tmp);
+	bool setHeight(int h);
+	bool setColor(int clr);
+	bool operator=(const Node<T1, T2> &b);
+	bool operator=(const T1 &id);
+	bool copy(const Node<T1, T2> * const b);
+	bool AddLft(Node<T1, T2> *lft);
+	bool AddRgt(Node<T1, T2> *rgt);
+	bool AddLft(const T1 &lftID, const T2 * const lftRcd = NULL);
+	bool AddRgt(const T1 &rgtID, const T2 * const RgtRcd = NULL);
+
+	// get the info of private members
+	Node<T1, T2> *getLft() const { return Lft; }
+	Node<T1, T2> *getRgt() const { return Rgt; }
+	int getHeight() const { return height; }
+	int getColor() const { return color; }
+	const T1 &getID() const { return ID; }
+	T2 *getRcd() const { return Rcd; }
+	void print() const;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: Node
+// DESCRIPTION: Constructor of Node class.
+//   ARGUMENTS: none
+// USES GLOBAL: none
+// MODIFIES GL: height, Rcd, Lft, Rgt, color
+//     RETURNS: none
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-20
+//							KC 2015-02-20
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>::Node() {
+	color = 0;
+	height = 0;
+	Rcd = new T2;
+	if (Rcd == NULL)
+		throw NodeERR("Out of space");
+	Lft = Rgt = NULL;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: Node
+// DESCRIPTION: Constructor of Node class.
+//   ARGUMENTS: const T1 &id - the ID of the node
+//				const T2 * const rcd - the initial record with default value NULL
+//				int clr = 0 - the color of the node
+// USES GLOBAL: none
+// MODIFIES GL: ID, Rcd, height, Lft, Rgt, color
+//     RETURNS: none
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-20
+//							KC 2015-02-20
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>::Node(const T1 &id, const T2 * const rcd, int clr) {
+	ID = id;
+	Rcd = new T2;
+	if (Rcd == NULL)
+		throw NodeERR("Out of space");
+	if (rcd != NULL)
+		*Rcd = *rcd;
+	Lft = Rgt = NULL;	// no sons at first
+	height = 0;
+	color = clr;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: Node
+// DESCRIPTION: Constructor of Node class.
+//   ARGUMENTS: const T1 &id - the ID of the node
+//				const T2 &rcd - the initial record
+//				int clr = 0 - the color of the node
+// USES GLOBAL: none
+// MODIFIES GL: ID, Rcd, height, Lft, Rgt, color
+//     RETURNS: none
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-20
+//							KC 2015-02-20
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>::Node(const T1 &id, const T2 &rcd, int clr) {
+	ID = id;
+	Rcd = new T2;
+	if (Rcd == NULL)
+		throw NodeERR("Out of space");
+	*Rcd = rcd;
+	Lft = Rgt = NULL;	// no sons at first
+	height = 0;
+	color = clr;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: Node
+// DESCRIPTION: Copy constructor of Node class.
+//   ARGUMENTS: const Node<T1, T2> &New - the Node that is to be copied
+// USES GLOBAL: none
+// MODIFIES GL: ID, Rcd, height, Lft, Rgt
+//     RETURNS: none
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-05
+//							KC 2015-02-05
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>::Node(const Node<T1, T2> &New) {
+	copy(&New);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: ~Node
+// DESCRIPTION: Destructor of Node class.
+//   ARGUMENTS: none
+// USES GLOBAL: none
+// MODIFIES GL: ID, Rcd, height, Lft, Rgt
+//     RETURNS: none
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-05
+//							KC 2015-02-05
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+Node<T1, T2>::~Node() {
+	if (Rcd != NULL)
+		delete Rcd;
+	if (Lft != NULL)
+		delete Lft;
+	if (Rgt != NULL)
+		delete Rgt;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: setID
+// DESCRIPTION: To modify the ID of a Node.
+//   ARGUMENTS: const T1 &tmp - the new ID value
+// USES GLOBAL: none
+// MODIFIES GL: ID
+//     RETURNS: bool
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-05
+//							KC 2015-02-05
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+bool Node<T1, T2>::setID(const T1 &tmp) {
+	ID = tmp;
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: setHeight
+// DESCRIPTION: To modify the height of a Node.
+//   ARGUMENTS: int h - the new height value
+// USES GLOBAL: none
+// MODIFIES GL: height
+//     RETURNS: bool
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-09
+//							KC 2015-02-09
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+bool Node<T1, T2>::setHeight(int h) {
+	height = h;
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: setColor
+// DESCRIPTION: To modify the color of a Node.
+//   ARGUMENTS: int clr - the new color value
+// USES GLOBAL: none
+// MODIFIES GL: color
+//     RETURNS: bool
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-20
+//							KC 2015-02-20
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+bool Node<T1, T2>::setColor(int clr) {
+	color = clr;
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: copy
+// DESCRIPTION: To copy the node and their sons.
+//   ARGUMENTS: const Node<T1, T2> * const b - the new node that is to be copied
+// USES GLOBAL: none
+// MODIFIES GL: ID, Rcd, Lft, Rgt, height
+//     RETURNS: bool
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-20
+//							KC 2015-02-20
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+bool Node<T1, T2>::copy(const Node<T1, T2> * const b) {
+	
+	// avoid self copy after deletion
+	if (b == this)
+		return true;
+
+	// copy ID, record, color and height
+	ID = b->ID;
+	if (b->Rcd != NULL) {
+		if (Rcd == NULL) {
+			Rcd = new T2;
+			if (Rcd == NULL) {
+				throw NodeERR("Out of space");
+				return false;
+			}
+		}
+		*Rcd = *(b->Rcd);
+	}
+	else {
+		if (Rcd != NULL) {
+			delete Rcd;
+			Rcd = NULL;
+		}
+	}
+	height = b->height;
+	color = b->color;
+
+	// copy the left son
+	if (b->Lft != NULL) {
+		if (Lft == NULL) {
+			Lft = new Node<T1, T2>;
+			if (Lft == NULL) {
+				throw NodeERR("Out of space");
+				return false;
+			}
+		}
+		Lft->copy(b->Lft);
+	}
+	else {
+		if (Lft != NULL) {
+			delete Lft;
+			Lft = NULL;
+		}
+	}
+
+	// copy the right son
+	if (b->Rgt != NULL) {
+		if (Rgt == NULL) {
+			Rgt = new Node<T1, T2>;
+			if (Rgt == NULL) {
+				throw NodeERR("Out of space");
+				return false;
+			}
+		}
+		Rgt->copy(b->Rgt);
+	}
+	else {
+		if (Rgt != NULL) {
+			delete Rgt;
+			Rgt = NULL;
+		}
+	}
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: operator=
+// DESCRIPTION: copy the content of a Node.
+//   ARGUMENTS: const Node<T1, T2> &b - the Node that is to be assigned
+// USES GLOBAL: none
+// MODIFIES GL: ID, Rcd, height
+//     RETURNS: bool
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-09
+//							KC 2015-02-09
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+bool Node<T1, T2>::operator=(const Node<T1, T2> &b) {
+	if (&b == this)
+		return true;
+	ID = b.getID();
+	*Rcd = *(b.getRcd());
+	height = b.getHeight();
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: operator=
+// DESCRIPTION: Assign the ID of a Node.
+//   ARGUMENTS: const T1 &id - the id that is to be assigned
+// USES GLOBAL: none
+// MODIFIES GL: ID
+//     RETURNS: bool
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-10
+//							KC 2015-02-10
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+bool Node<T1, T2>::operator=(const T1 &id) {
+	ID = id;
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: AddLft
+// DESCRIPTION: Concatenate a left son.
+//   ARGUMENTS: Node<T1, T2> *lft - the left son that is to be concatenated
+// USES GLOBAL: none
+// MODIFIES GL: Lft, height
+//     RETURNS: bool
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-05
+//							KC 2015-02-05
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+bool Node<T1, T2>::AddLft(Node<T1, T2> *lft) {
+
+	Lft = lft; // assign the left son
+
+	// update the height
+	height = 0;
+	if (Lft != NULL)
+		height = MAX(height, Lft->height + 1);
+	if (Rgt != NULL)
+		height = MAX(height, Rgt->height + 1);
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: AddLft
+// DESCRIPTION: Concatenate a left son.
+//   ARGUMENTS: const T1 &lftID - the ID of the left son that is to be concatenated
+//				const T2 * const lftRcd - the record of the left son
+// USES GLOBAL: none
+// MODIFIES GL: Lft, height
+//     RETURNS: bool
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-05
+//							KC 2015-02-05
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+bool Node<T1, T2>::AddLft(const T1 &lftID, const T2 * const lftRcd) {
+
+	Node *Tmp = new Node(lftID, lftRcd);
+	if (Tmp == NULL) {
+		throw NodeERR("Out of space");
+		return false;
+	}
+	Lft = Tmp;
+
+	// update the height
+	height = 0;
+	if (Lft != NULL)
+		height = MAX(height, Lft->height + 1);
+	if (Rgt != NULL)
+		height = MAX(height, Rgt->height + 1);
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: AddRgt
+// DESCRIPTION: Concatenate a right son.
+//   ARGUMENTS: Node<T1, T2> *rgt - the right son that is to be concatenated
+// USES GLOBAL: none
+// MODIFIES GL: Rgt, height
+//     RETURNS: bool
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-05
+//							KC 2015-02-05
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+bool Node<T1, T2>::AddRgt(Node<T1, T2> *rgt) {
+
+	Rgt = rgt; // assign the left son
+
+	// update the height
+	height = 0;
+	if (Lft != NULL)
+		height = MAX(height, Lft->height + 1);
+	if (Rgt != NULL)
+		height = MAX(height, Rgt->height + 1);
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: AddRgt
+// DESCRIPTION: Concatenate a right son.
+//   ARGUMENTS: const T1 &rgtID - the ID of the right son that is to be concatenated
+//				const T2 * const RgtRcd - the record of the right son
+// USES GLOBAL: none
+// MODIFIES GL: Rgt, height
+//     RETURNS: bool
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-05
+//							KC 2015-02-05
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+bool Node<T1, T2>::AddRgt(const T1 &rgtID, const T2 * const RgtRcd = NULL) {
+
+	Node *Tmp = new Node(rgtID, RgtRcd);
+	if (Tmp == NULL) {
+		throw NodeERR("Out of space");
+		return false;
+	}
+	Rgt = Tmp;
+
+	// update the height
+	height = 0;
+	if (Lft != NULL)
+		height = MAX(height, Lft->height + 1);
+	if (Rgt != NULL)
+		height = MAX(height, Rgt->height + 1);
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//        NAME: print
+// DESCRIPTION: To print the Node's ID, height and two sons.
+//   ARGUMENTS: none
+// USES GLOBAL: none
+// MODIFIES GL: none
+//     RETURNS: void
+//      AUTHOR: Kingston Chan
+// AUTHOR/DATE: KC 2015-02-28
+//							KC 2015-02-28
+////////////////////////////////////////////////////////////////////////////////
+template<class T1, class T2>
+void Node<T1, T2>::print() const{
+	HANDLE hstdin = GetStdHandle( STD_INPUT_HANDLE );
+	HANDLE hstdout = GetStdHandle( STD_OUTPUT_HANDLE );
+	
+	// remember how things were when started
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	GetConsoleScreenBufferInfo( hstdout, &csbi );
+	
+	// print ID
+	if (color == 0)	// set color
+		SetConsoleTextAttribute( hstdout, 0xF0 );
+	else if (color == 1)
+		SetConsoleTextAttribute( hstdout, 0xFC );
+	else
+		return;
+	cout << ID;	// output
+	SetConsoleTextAttribute(hstdout, csbi.wAttributes);	// return color
+
+	// print Lft son
+	cout << ": h-" << height << "  l-";
+	cout << '(';
+	if (Lft != NULL) {
+		if (Lft->getColor() == 0)	// set color
+			SetConsoleTextAttribute(hstdout, 0xF0);
+		else if (Lft->getColor() == 1)
+			SetConsoleTextAttribute(hstdout, 0xFC);
+		else
+			return;
+		cout << Lft->getID(); // output
+		SetConsoleTextAttribute(hstdout, csbi.wAttributes);	// return color
+	}
+	cout << ')';
+
+	// print right son
+	cout << "  r-";
+	cout << '(';
+	if (Rgt != NULL) {
+		if (Rgt->getColor() == 0)	// set color
+			SetConsoleTextAttribute(hstdout, 0xF0);
+		else if (Rgt->getColor() == 1)
+			SetConsoleTextAttribute(hstdout, 0xFC);
+		else
+			return;
+		cout << Rgt->getID(); // output
+		SetConsoleTextAttribute(hstdout, csbi.wAttributes);	// return color
+	}
+	cout << ')';
+	cout << endl;
+
+	if (Lft != NULL)
+		Lft->print();
+	if (Rgt != NULL)
+		Rgt->print();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////Red-Black Tree////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T1>
 int dCmp(const T1 &a, const T1 &b) {	// default compare function
@@ -54,12 +573,8 @@ public :
 	}
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////RB tree//////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2 = NULLT>
 class RBTree {
-
 private :
 	Node<T1, T2> *root;
 	int size;
@@ -173,6 +688,8 @@ RBTree<T1, T2>::RBTree(int(*compare)(const T1 &a, const T1 &b)) {
 template<class T1, class T2>
 RBTree<T1, T2>::RBTree(const Node<T1, T2> &head, int(*compare)(const T1 &a, const T1 &b)) {
 	root = new Node<T1, T2>(head);
+	if (root == NULL)
+		throw RBERR("Out of space");
 	size = calcSize(root);
 	cmp = compare;
 }
@@ -193,6 +710,8 @@ RBTree<T1, T2>::RBTree(const Node<T1, T2> &head, int(*compare)(const T1 &a, cons
 template<class T1, class T2>
 RBTree<T1, T2>::RBTree(const T1 &rootID, const T2 * const rootRcd, int(*compare)(const T1 &a, const T1 &b)) {
 	root = new Node<T1, T2>(rootID, rootRcd);
+	if (root == NULL)
+		throw RBERR("Out of space");
 	size = 1;
 	cmp = compare;
 }
@@ -213,6 +732,8 @@ RBTree<T1, T2>::RBTree(const T1 &rootID, const T2 * const rootRcd, int(*compare)
 template<class T1, class T2>
 RBTree<T1, T2>::RBTree(const T1 &rootID, const T2 &rootRcd, int(*compare)(const T1 &a, const T1 &b)) {
 	root = new Node<T1, T2>(rootID, rootRcd);
+	if (root == NULL)
+		throw RBERR("Out of space");
 	size = 1;
 	cmp = compare;
 }
@@ -233,6 +754,8 @@ RBTree<T1, T2>::RBTree(const RBTree<T1, T2> &Old) {
 	size = Old.size;
 	cmp = Old.cmp;
 	root = new Node<T1, T2>;
+	if (root == NULL)
+		throw RBERR("Out of space");
 	root->copy(Old.root);
 }
 
@@ -249,7 +772,6 @@ RBTree<T1, T2>::RBTree(const RBTree<T1, T2> &Old) {
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 RBTree<T1, T2>::~RBTree() {
-	cout << "Destructor: ";
 	if (root != NULL)
 		cout << root->getID();
 	cout << endl;
@@ -594,7 +1116,6 @@ Node<T1, T2>* RBTree<T1, T2>::iRotateRL(Node<T1, T2> *N1) {
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::dRotateLL(Node<T1, T2> *N1) {
-	cout << "dRotateLL" << endl;
 	Node<T1, T2> *NL = N1->getLft();
 	Node<T1, T2> *NR = N1->getRgt();
 	Node<T1, T2> *NLL = NL->getLft();
@@ -624,7 +1145,6 @@ Node<T1, T2>* RBTree<T1, T2>::dRotateLL(Node<T1, T2> *N1) {
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::dRotateRR(Node<T1, T2> *N1) {
-	cout << "dRotateRR" << endl;
 	Node<T1, T2> *NL = N1->getLft();
 	Node<T1, T2> *NR = N1->getRgt();
 	Node<T1, T2> *NRR = NR->getRgt();
@@ -652,7 +1172,6 @@ Node<T1, T2>* RBTree<T1, T2>::dRotateRR(Node<T1, T2> *N1) {
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::dRotateLR(Node<T1, T2> *N1) {
-	cout << "dRotateLR" << endl;
 	Node<T1, T2> *N2 = N1->getRgt();
 	N1->setColor(1 - N1->getColor());
 	if (N2 != NULL)
@@ -673,7 +1192,6 @@ Node<T1, T2>* RBTree<T1, T2>::dRotateLR(Node<T1, T2> *N1) {
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 Node<T1, T2>* RBTree<T1, T2>::dRotateRL(Node<T1, T2> *N1) {
-	cout << "dRotateRL" << endl;
 	Node<T1, T2> *N2= N1->getLft();
 	N1->setColor(1 - N1->getColor());
 	if (N2 != NULL)
@@ -706,7 +1224,6 @@ bool RBTree<T1, T2>::iHandleReorient() {
 		int Case = (cmp(X->getID(), P->getID()) < 0) + ((cmp(P->getID(), GP->getID()) < 0) << 1);
 		switch(Case) {
 		case 0:	// single rotate with right
-			cout << "rotateRR" << endl;
 			if (GP == GGP)
 				root = iRotateRR(GP);
 			else if (cmp(GP->getID(), GGP->getID()) < 0)
@@ -715,7 +1232,6 @@ bool RBTree<T1, T2>::iHandleReorient() {
 				GGP->AddRgt(iRotateRR(GP));
 			break;
 		case 1:	// double rotate right-left
-			cout << "rotateRL" << endl;
 			if (GP == GGP)
 				root = iRotateRL(GP);
 			else if (cmp(GP->getID(), GGP->getID()) < 0)
@@ -724,7 +1240,6 @@ bool RBTree<T1, T2>::iHandleReorient() {
 				GGP->AddRgt(iRotateRL(GP));
 			break;
 		case 2: // double rotate left-right
-			cout << "rotateLR" << endl;
 			if (GP == GGP)
 				root = iRotateLR(GP);
 			else if (cmp(GP->getID(), GGP->getID()) < 0)
@@ -733,7 +1248,6 @@ bool RBTree<T1, T2>::iHandleReorient() {
 				GGP->AddRgt(iRotateLR(GP));
 			break;
 		case 3: // single rotate with right
-			cout << "rotateLL" << endl;
 			if (GP == GGP)
 				root = iRotateLL(GP);
 			else if (cmp(GP->getID(), GGP->getID()) < 0)
@@ -844,14 +1358,12 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 	// execute with respect to case
 	switch(Case) {
 	case 0:	// case 2A1
-		cout << "case 2A1" << endl;
 		P->setColor(0);
 		X->setColor(1);
 		T->setColor(1);
 		return true;
 	case 1:	// case 2A2
 		if (cmp(X->getID(), P->getID()) < 0) {	// T is on the right, double rotation
-			cout << "case 2A2" << endl;
 			if (P == GP)
 				root = dRotateRL(P);
 			else if (cmp(P->getID(), GP->getID()) < 0)
@@ -860,7 +1372,6 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 				GP->AddRgt(dRotateRL(P));
 		}
 		else {	// T is on the left, single rotation
-			cout << "case 2A3" << endl;
 			if (P == GP)
 				root = dRotateLL(P);
 			else if (cmp(P->getID(), GP->getID()) < 0)
@@ -872,7 +1383,6 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 		return true;
 	case 2:	// case 2A3
 		if (cmp(X->getID(), P->getID()) < 0) {	// T is on the right, single rotation
-			cout << "case 2A3" << endl;
 			if (P == GP)
 				root = dRotateRR(P);
 			else if (cmp(P->getID(), GP->getID()) < 0)
@@ -881,7 +1391,6 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 				GP->AddRgt(dRotateRR(P));
 		}
 		else {	// T is on the left, double rotation
-			cout << "case 2A2" << endl;
 			if (P == GP)
 				root = dRotateLR(P);
 			else if (cmp(P->getID(), GP->getID()) < 0)
@@ -892,7 +1401,6 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 		X->setColor(1);
 		return true;
 	case 4:	// case 2B2
-		cout << "case 2B2" << endl;
 		// move down
 		GP = P;
 		P = X;
@@ -930,7 +1438,6 @@ bool RBTree<T1, T2>::dHandleReorient(int dir) {
 		}
 		return true;
 	case 5:	// case 2B1
-		cout << "case 2B1" << endl;
 		return true;
 	default:
 		throw RBERR("case out of range");
