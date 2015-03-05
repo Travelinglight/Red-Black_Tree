@@ -687,7 +687,7 @@ RBTree<T1, T2>::RBTree(int(*compare)(const T1 &a, const T1 &b)) {
 ////////////////////////////////////////////////////////////////////////////////
 template<class T1, class T2>
 RBTree<T1, T2>::RBTree(const Node<T1, T2> &head, int(*compare)(const T1 &a, const T1 &b)) {
-	root = new Node<T1, T2>(head);
+	root = new Node<T1, T2>(head.ID, head.Rcd);
 	if (root == NULL)
 		throw RBERR("Out of space");
 	size = calcSize(root);
